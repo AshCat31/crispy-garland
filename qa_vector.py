@@ -121,18 +121,59 @@ cbar.set_ticks(ticks)
 cbar.set_ticklabels(ticks)
 
 ax.set_aspect('equal')
+# Sort data based on c
+sorted_indices = np.argsort(c)
+sorted_xs = np.asarray(xs)[sorted_indices]
+sorted_ys = np.asarray(ys)[sorted_indices]
+sorted_c = c[sorted_indices]
 
-cx, cy = int(statistics.mean(xs)),  int(statistics.mean(ys))
-radius = 12
-circle = patches.Circle((cx, cy), radius, edgecolor='green', facecolor='none', linewidth=2, zorder=99999)
-ax.add_patch(circle)
+# Calculate indices for partitions
+third = len(c) // 3
+two_thirds = 2 * third
 
-for i in range(len(xs)):
-    x = xs[i]
-    y = ys[i]
-    distance = np.sqrt((x - cx) ** 2 + (y - cy) ** 2)
-    if distance > radius:
-        integ_outside +=1
+# Partition data
+xs_lowest_third = sorted_xs[:third]
+ys_lowest_third = sorted_ys[:third]
+
+xs_lowest_two_thirds = sorted_xs[:two_thirds]
+ys_lowest_two_thirds = sorted_ys[:two_thirds]
+
+xs_all = sorted_xs
+ys_all = sorted_ys
+
+# Fit ellipses
+def fit_ellipse(xs, ys, ax, color, label, scale):
+    mean_x = np.mean(xs)
+    mean_y = np.mean(ys)
+    cov_matrix = np.cov(xs, ys)
+    eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+    angle = np.degrees(np.arctan2(eigenvectors[1, 0], eigenvectors[0, 0]))
+    ellipse = patches.Ellipse((mean_x, mean_y), 2 * np.sqrt(5*scale * eigenvalues[0]), 2 * np.sqrt(5*scale * eigenvalues[1]),
+                      angle=angle, edgecolor=color, facecolor='none', label=label)
+    ax.add_patch(ellipse)
+
+# Plotting
+# fig, ax = plt.subplots()
+
+# # Plot points
+# ax.scatter(xs_all, ys_all, c=c, cmap='viridis', label='All Points')
+
+# Fit ellipses for each group
+fit_ellipse(xs_lowest_third, ys_lowest_third, ax, 'red', 'Lowest 1/3', 1)
+fit_ellipse(xs_lowest_two_thirds, ys_lowest_two_thirds, ax, 'blue', 'Lowest 2/3', 2)
+fit_ellipse(xs_all, ys_all, ax, 'black', 'All Points', 3)
+
+# cx, cy = int(statistics.mean(xs)),  int(statistics.mean(ys))
+# radius = 12
+# circle = patches.Circle((cx, cy), radius, edgecolor='green', facecolor='none', linewidth=2, zorder=99999)
+# ax.add_patch(circle)
+
+# for i in range(len(xs)):
+#     x = xs[i]
+#     y = ys[i]
+#     distance = np.sqrt((x - cx) ** 2 + (y - cy) ** 2)
+#     if distance > radius:
+#         integ_outside +=1
 
 colors = ['orange','yellow','green','cyan','indigo','magenta', 'brown']
 cidx = 0
@@ -148,15 +189,15 @@ for dev_id in device_list:
         vector_plot(*vector, 'yellow', 9999)
         cidx+=1
 
-for i in range(len(new_xs)):
-    x = new_xs[i]
-    y = new_ys[i]
-    distance = np.sqrt((x - cx) ** 2 + (y - cy) ** 2)
-    if distance > radius:
-        new_outside +=1
+# for i in range(len(new_xs)):
+#     x = new_xs[i]
+#     y = new_ys[i]
+#     distance = np.sqrt((x - cx) ** 2 + (y - cy) ** 2)
+#     if distance > radius:
+#         new_outside +=1
 
-print("Integ outside", integ_outside/len(xs))
-print("New outside", new_outside/len(new_xs))
+# print("Integ outside", integ_outside/len(xs))
+# print("New outside", new_outside/len(new_xs))
 
 ax.set_aspect('equal')
 # Set the limits of the plot to be slightly larger than the vector

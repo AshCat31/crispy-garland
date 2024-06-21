@@ -16,7 +16,7 @@ with open("/home/canyon/Test_Equipment/SNs_with_IDs.txt", "r") as id_file:
         id = device[0]
         download_json(id)
         try:
-            with open(f"../S3bucket/{id}/data.json", "r") as json_file:
+            with open(f"../../S3bucket/{id}/data.json", "r") as json_file:
                 data_content = json.load(json_file)
         except FileNotFoundError:
             print(id, "s3 json doesn't exist")

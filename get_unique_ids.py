@@ -33,4 +33,5 @@ def main():
 
 
 if __name__ == "__main__":
-    print(timeit.timeit("main()",globals=globals(),number=1))
+    # print(timeit.timeit("main()",globals=globals(),number=1))
+    main()

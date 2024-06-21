@@ -99,6 +99,7 @@ def main():
             
 
 if __name__ == "__main__":
-    print(timeit.timeit("main()", number=1, globals=globals()))
+    main()
+    # print(timeit.timeit("main()", number=1, globals=globals()))
     # print(timeit.timeit('get_date("E660D05113338132")', globals=globals(), number=10))
     # print(timeit.timeit('get_date("E661385283302332")', globals=globals(), number=10))

@@ -84,8 +84,8 @@ class ParalaxCalibrator:
 
         
         """
-        self.thermalImage = thermalImageLocation
-        self.colorImage =colorImageLocation
+        self.thermalImage = np.load(thermalImageLocation)
+        self.colorImage = mpimg.imread(colorImageLocation)
 
         if len(self.colorImage.shape) == 3:
             r, g, b = self.colorImage[:, :, 0], self.colorImage[:, :, 1], self.colorImage[:, :, 2]
@@ -698,28 +698,27 @@ def main():
         for line in reader.split("\n"):
             deviceList.append(line.split())
         for row in deviceList:
-            # img_idx = input("Enter device id: ")
-           cal_device(row)
+            # dev_id = input("Enter device id: ")
+            global dev_id
+            dev_id = row[0]
+            cal_device(dev_id)
 
-def cal_device(row):
-    global img_idx
-    img_idx = row[0]
-    print(img_idx)
-    if img_idx.startswith("1000"):  # hub
+def cal_device(dev_id):
+    print(dev_id)
+    if dev_id.startswith("1000"):  # hub
         unit_type = "mosaic_"
     else:  # head
         unit_type = "hydra_"
     # unit_type = {"1":"hydra_","2":"mosaic_"}[input("Unit Type (1: hydra, 2: hub/mosaic):")]
-    basePath = os.path.join("/home/canyon/S3bucket/", img_idx)
-    rgb_img_path = os.path.join(basePath, "6_inch.png")
-    trml_img_path = os.path.join(basePath, "6_inch.npy")
-    folder_path = basePath
-    outputDir = os.path.join(basePath, 'calculated_transformations2')
+    base_path = os.path.join("/home/canyon/S3bucket/", dev_id)
+    rgb_img_path = os.path.join(base_path, "6_inch.png")
+    trml_img_path = os.path.join(base_path, "6_inch.npy")
+    outputDir = os.path.join(base_path, 'calculated_transformations')
     # -----------------------------------------------------------
     # Grab points of interest
     # -----------------------------------------------------------
-    rgb_coordinates_file_path = folder_path + '/rgb_' + img_idx + '_9element_coord.npy'
-    trml_coordinates_file_path = folder_path + '/trml_' + img_idx + '_9element_coord.npy'
+    rgb_coordinates_file_path = base_path + '/rgb_' + dev_id + '_9element_coord.npy'
+    trml_coordinates_file_path = base_path + '/trml_' + dev_id + '_9element_coord.npy'
     coordinatFiles = os.path.isfile(rgb_coordinates_file_path) and os.path.isfile(trml_coordinates_file_path)
     if not coordinatFiles:
         # Read thermal image
@@ -775,12 +774,12 @@ def cal_device(row):
     logging.debug(sensitivityMatrix.shape)
     if not os.path.exists(outputDir):
         os.mkdir(outputDir)
-    if not os.path.exists(outputDir + '/' + img_idx):
-        os.mkdir(outputDir + '/' + img_idx)
-    np.save(outputDir + '/' + img_idx + '/mapped_coordinates_matrix_' + unit_type + img_idx + '.npy',
+    if not os.path.exists(outputDir + '/' + dev_id):
+        os.mkdir(outputDir + '/' + dev_id)
+    np.save(outputDir + '/' + dev_id + '/mapped_coordinates_matrix_' + unit_type + dev_id + '.npy',
             coordinateMap)
-    np.save(outputDir + '/' + img_idx + '/mapped_mask_matrix_' + unit_type + img_idx + '.npy', maskMartix)
-    np.save(outputDir + '/' + img_idx + '/sensitivity_correction_matrix_' + unit_type + img_idx + '.npy',
+    np.save(outputDir + '/' + dev_id + '/mapped_mask_matrix_' + unit_type + dev_id + '.npy', maskMartix)
+    np.save(outputDir + '/' + dev_id + '/sensitivity_correction_matrix_' + unit_type + dev_id + '.npy',
             sensitivityMatrix)
 
 
@@ -815,7 +814,7 @@ def sample_coordinate_of_corners(img, num_corners=9, padding=0):
             return None
         img = padded_img
 
-    plt.suptitle(img_idx)
+    plt.suptitle(dev_id)
     plt.imshow(img, cmap='gray')
     samples_coord = plt.ginput(num_corners, timeout=90)
     plt.show()

@@ -15,13 +15,14 @@ def main():
     print("Auto calibrating...")
     with open("/home/canyon/Test_Equipment/QA_ids.txt", "r") as id_file:
         for line in id_file:
-            device = line.split()
-            success = darcm(device[0])
-            if not success:
-                print("Auto failed, doing manual")
-                get.download_device(device)
-                cal.cal_device(device)
-                put.upload_device(device)
+            device = line.split("    ")
+            dev_id = device[0]
+            # success = darcm(device[0])
+            # if not success:
+            print("Auto failed, doing manual")
+            get.download_device(dev_id)
+            cal.cal_device(dev_id)
+            put.upload_device(dev_id)
     print("Reviewing parallax...")
     check.main()
     print("Performing QA...")

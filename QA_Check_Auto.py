@@ -117,7 +117,8 @@ def main():
                             id_check = False
                         if serial_number != js_serial_number:
                             serial_number_check = False
-                            logger.error(" Serial Number in Data.json is not the same as input.")
+                            if serial_number != 'none':
+                                logger.error(" Serial Number in Data.json is not the same as input.")
                             print("\tSN is", js_serial_number)
                         # printing the json data for review by use
                         logger.info("Data from json File: ")

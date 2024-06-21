@@ -37,17 +37,17 @@ s3client = boto3.client('s3',
                         aws_session_token = SESSION_TOKEN,
                         )
 bucket_name = 'kcam-calibration-data'
-prefix='100'
+# Create a paginator for listing objects in the bucket
+#This is neccesary as S3 will force you to only get a maximum of 999 files at once and we need a lot more than that for this script
+paginator = s3client.get_paginator('list_objects_v2')
 # prefix='E661'
-Part_num='400-0103-02' #hubs 
 # Part_num='400-0102-03' # r3 heads
-dev_type='_mosaic' #hubs 
 # dev_type='_hydra' # r3 heads
+prefix='100'
+Part_num='400-0103-02' #hubs 
+dev_type='_mosaic' #hubs 
 local_directory='vector_shifts/'
 
-# Create a paginator for listing objects in the bucket
-#This is nessacry as S3 will force you to only get a maximum of 999 files at once and we need a lot more than that for this script
-paginator = s3client.get_paginator('list_objects_v2')
 
 # Define the parameters for the list_objects_v2 call
 list_objects_params = {
@@ -57,7 +57,7 @@ list_objects_params = {
     'MaxKeys': 1000  # Adjust the MaxKeys parameter as needed
 }
 
-folder_paginator = s3client.get_paginator('list_objects_v2')
+# folder_paginator = s3client.get_paginator('list_objects_v2')
 
 ROI_list = [
 '10000000c2094a7b',

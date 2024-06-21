@@ -1,0 +1,10 @@
+wrong_hydra_1 = E661AC88638D5427
+wrong_hydra_2 = E661AC88638D5427 // another set of wrong calibration points
+correct_hydra_1 = E661AC88638D5427
+wrong_hydra_3 = E66138528342A835
+correct_hydra_3 = E66138528342A835
+correct_hub_1 = 100000004865a32d
+
+correct_hydra_4 = E6613852830F7628
+correct_hub_4 = 100000008b979140
+correct_hub_5 = 1000000054dc7195

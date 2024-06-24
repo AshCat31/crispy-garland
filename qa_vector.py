@@ -160,9 +160,9 @@ def fit_ellipse(xs, ys, ax, color, label, scale):
 # ax.scatter(xs_all, ys_all, c=c, cmap='viridis', label='All Points')
 
 # Fit ellipses for each group
-fit_ellipse(xs_lowest_third, ys_lowest_third, ax, 'red', 'Lowest 1/3', 1)
-fit_ellipse(xs_lowest_two_thirds, ys_lowest_two_thirds, ax, 'blue', 'Lowest 2/3', 2)
-fit_ellipse(xs_all, ys_all, ax, 'black', 'All Points', 3)
+fit_ellipse(xs_lowest_third, ys_lowest_third, ax, 'green', 'Lowest 1/3', 1)
+fit_ellipse(xs_lowest_two_thirds, ys_lowest_two_thirds, ax, 'green', 'Lowest 2/3', 2)
+fit_ellipse(xs_all, ys_all, ax, 'green', 'All Points', 3)
 
 # cx, cy = int(statistics.mean(xs)),  int(statistics.mean(ys))
 # radius = 12

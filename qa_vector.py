@@ -14,7 +14,8 @@ def vector_plot(magnitude, angle_degrees, color='black', zorder=10):
     y_component = magnitude * np.sin(angle_radians)
     # ax.arrow(0, 0, x_component, y_component, head_width=1, color=color)
     if color == 'yellow':
-        ax.plot(x_component, y_component, 'o', color=color, markersize=12, zorder=zorder)
+        pass
+        # ax.plot(x_component, y_component, 'o', color=color, markersize=12, zorder=zorder)
     if color == 'black':
         xs.append(x_component)
         ys.append(y_component)
@@ -72,7 +73,7 @@ def get_vector(device_id):
 rgb_cen=(220,260)
 device_list = []
 local_directory='/home/canyon/S3bucket/'
-doc_path = '/home/canyon/Test_Equipment/QA_ids.txt'
+doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
 with open(doc_path, 'r') as file:
     for line in file:
         device_list.append(line.split()[0])
@@ -109,9 +110,9 @@ for mag, ang, id, is_rma, bad_rois in vectors:
 c = np.asarray([int(i) for i in vectors[:,4]])
 norm = mcolors.LogNorm(vmin=min(c)+1, vmax=max(c))
 # print(min(c),max(c))
-cmap = plt.cm.get_cmap('twilight')
-for i in range(len(xs)):
-    ax.scatter(xs[i], ys[i], s=90, c=c[i], cmap=cmap, norm=norm, zorder=-c[i])
+cmap = plt.cm.get_cmap('inferno')
+# for i in range(len(xs)):
+#     ax.scatter(xs[i], ys[i], s=90, c=c[i], cmap=cmap, norm=norm, zorder=-c[i])
 sm = ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
 cbar = plt.colorbar(sm, ax=ax, label='Values')
@@ -188,6 +189,8 @@ for dev_id in device_list:
         # vector_plot(*vector, colors[cidx%len(colors)], 999)
         vector_plot(*vector, 'yellow', 9999)
         cidx+=1
+for i in range(len(new_xs)):
+    ax.scatter(new_xs[i], new_ys[i], s=90, c=c[i], cmap=cmap, norm=norm, zorder=-c[i])
 
 # for i in range(len(new_xs)):
 #     x = new_xs[i]

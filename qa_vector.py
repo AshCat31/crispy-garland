@@ -72,11 +72,13 @@ def get_vector(device_id):
 
 rgb_cen=(220,260)
 device_list = []
+c2= []
 local_directory='/home/canyon/S3bucket/'
 doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
 with open(doc_path, 'r') as file:
     for line in file:
         device_list.append(line.split()[0])
+        c2.append(float(line.split()[1]))
 
 cred = boto3.Session().get_credentials()
 ACCESS_KEY = cred.access_key 
@@ -108,19 +110,9 @@ for mag, ang, id, is_rma, bad_rois in vectors:
     else:
         vector_plot(float(mag), float(ang))
 c = np.asarray([int(i) for i in vectors[:,4]])
-norm = mcolors.LogNorm(vmin=min(c)+1, vmax=max(c))
 # print(min(c),max(c))
-cmap = plt.cm.get_cmap('inferno')
 # for i in range(len(xs)):
 #     ax.scatter(xs[i], ys[i], s=90, c=c[i], cmap=cmap, norm=norm, zorder=-c[i])
-sm = ScalarMappable(cmap=cmap, norm=norm)
-sm.set_array([])
-cbar = plt.colorbar(sm, ax=ax, label='Values')
-#Show ticks at powers of 10
-ticks = [10**i for i in range(int(np.floor(np.log10(min(c) + 1))), int(np.ceil(np.log10(max(c)))) + 1)]
-cbar.set_ticks(ticks)
-cbar.set_ticklabels(ticks)
-
 ax.set_aspect('equal')
 # Sort data based on c
 sorted_indices = np.argsort(c)
@@ -176,6 +168,17 @@ fit_ellipse(xs_all, ys_all, ax, 'green', 'All Points', 3)
 #     if distance > radius:
 #         integ_outside +=1
 
+# print((max(c2)))
+norm = mcolors.Normalize(vmin=1, vmax=max(c2))
+cmap = plt.cm.get_cmap('inferno')
+sm = ScalarMappable(cmap=cmap, norm=norm)
+# ticks = [10**i for i in range(int(np.floor(np.log10(0))), int(np.ceil(np.log10(len(new_xs)))) + 1)]
+sm.set_array([])
+cbar = plt.colorbar(sm, ax=ax, label='Values')
+# #Show ticks at powers of 10
+# cbar.set_ticks(ticks)
+# cbar.set_ticklabels(ticks)
+
 colors = ['orange','yellow','green','cyan','indigo','magenta', 'brown']
 cidx = 0
 for dev_id in device_list:
@@ -190,7 +193,7 @@ for dev_id in device_list:
         vector_plot(*vector, 'yellow', 9999)
         cidx+=1
 for i in range(len(new_xs)):
-    ax.scatter(new_xs[i], new_ys[i], s=90, c=c[i], cmap=cmap, norm=norm, zorder=-c[i])
+    ax.scatter(new_xs[i], new_ys[i], s=90, c=c2[i], cmap=cmap, norm=norm, zorder=-c2[i])
 
 # for i in range(len(new_xs)):
 #     x = new_xs[i]

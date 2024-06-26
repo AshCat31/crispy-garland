@@ -1,11 +1,11 @@
 import csv
-import boto3
-
+import datetime as dt
 import json
 import logging
+
+import boto3
 import numpy as np
-import datetime as dt
-import timeit
+
 
 # Function to check if a file exists in S3
 def checkPath(file_path):
@@ -17,6 +17,7 @@ def checkPath(file_path):
     if 'Contents' in result:
         exists = True
     return exists
+
 
 def get_sn(device_id):
     folder_path = f'{device_id}/'
@@ -34,10 +35,11 @@ def get_sn(device_id):
                 pass
     return js_serial_number
 
+
 def get_date(id, filenames, file_list, fileids):
     date = "none"
     try:
-        idx = np.where(filenames == id+"/6_inch.png")[0][0]
+        idx = np.where(filenames == id + "/6_inch.png")[0][0]
         date_info = dt.datetime.strptime(file_list[idx][2][:-6], '%Y-%m-%d %H:%M:%S')
         date = f"{str(date_info.month):0>2}/{str(date_info.day):0>2}/{str(date_info.year):0>4}"
         return date
@@ -51,7 +53,8 @@ def get_date(id, filenames, file_list, fileids):
             date_info = dt.datetime.strptime(file_list[idx][2][:-6], '%Y-%m-%d %H:%M:%S')
             date = f"{str(date_info.month):0>2}/{str(date_info.day):0>2}/{str(date_info.year):0>4}"
         return date
-    
+
+
 def main():
     global logger
     logger = logging.getLogger(__name__)
@@ -90,13 +93,13 @@ def main():
                 everything.append([id, sn, last_modi])
             except Exception as e:
                 print("error", id, e)
-            if idx % 400 ==0:  # log every 400th to show progress
+            if idx % 400 == 0:  # log every 400th to show progress
                 print(idx)
     with open("all_devices.csv", "w", newline='') as out_file:
-    # with open("a_device.csv", "w", newline='') as out_file:
+        # with open("a_device.csv", "w", newline='') as out_file:
         writer = csv.writer(out_file)
         writer.writerows(everything)
-            
+
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,9 @@
 import json
-import pandas as pd
-import numpy as np
+
 import boto3
+import numpy as np
+import pandas as pd
+
 
 def download_json(deviceId):
     global s3client
@@ -9,6 +11,7 @@ def download_json(deviceId):
     json_response = s3client.get_object(Bucket=_bucket_name, Key=f'{deviceId}/data.json')
     json_file_content = json_response['Body'].read().decode('utf-8')  # downloading the json
     return json.loads(json_file_content)
+
 
 cred = boto3.Session().get_credentials()
 ACCESS_KEY = cred.access_key
@@ -34,7 +37,7 @@ for i, line in enumerate(id_file):
         qr_dev_type = {"0103": "hub", "0102": "head"}[data_content['qr_code'].split("-")[1]]
         if dev_type != qr_dev_type:
             mismatched_qr_codes.append([id, data_content["serial_number"], data_content['qr_code'].split(";")[0]])
-        if i%200==0:
+        if i % 200 == 0:
             print(i)
     except:
         continue

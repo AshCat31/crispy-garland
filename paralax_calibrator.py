@@ -17,22 +17,17 @@ __copyright__ = """
     Other Patents Pending.
 """
 
-import os
-import math
 import logging
-
-import cv2
-import csv
-import numpy as np
-from numpy.linalg import inv
-from matplotlib import pyplot as plt
-import matplotlib.image as mpimg
-
-import tkinter as tk
-from tkinter import filedialog
-
+import math
+import os
 # Ignore DeprecationWarning:
 import warnings
+
+import cv2
+import matplotlib.image as mpimg
+import numpy as np
+from matplotlib import pyplot as plt
+from numpy.linalg import inv
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -98,7 +93,7 @@ class ParalaxCalibrator:
         # Scale the thermal image by a factor or 10 (from 32x24 to 320x240) for better smoothness of the heatmap
         trml_matrix_scaled = get_scaled_trml_image_optimized(self.thermalImage)
         trml_matrix_scaled = np.array((trml_matrix_scaled - np.min(trml_matrix_scaled)) / (
-                    np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled)) * 255).astype(np.uint8)
+                np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled)) * 255).astype(np.uint8)
         # Save the scaled image for opening it
         cv2.imwrite('trml_matrix_scaled.jpg', trml_matrix_scaled)
         # Read thermal image
@@ -703,6 +698,7 @@ def main():
             dev_id = row[0]
             cal_device(dev_id)
 
+
 def cal_device(dev_id):
     print(dev_id)
     if dev_id.startswith("1000"):  # hub
@@ -732,7 +728,7 @@ def cal_device(dev_id):
         # Scale the thermal image by a factor or 10 (from 32x24 to 320x240) for better smoothness of the heatmap
         trml_matrix_scaled = get_scaled_trml_image_optimized(trml_arr)
         trml_matrix_scaled = np.array((trml_matrix_scaled - np.min(trml_matrix_scaled)) / (
-                    np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled)) * 255).astype(np.uint8)
+                np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled)) * 255).astype(np.uint8)
         # Save the scaled image for opening it
         cv2.imwrite('trml_matrix_scaled.jpg', trml_matrix_scaled)
         # Read thermal image

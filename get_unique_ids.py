@@ -1,8 +1,7 @@
-import pandas as pd
 import boto3
 import numpy as np
+import pandas as pd
 
-import timeit
 
 def get_devices():
     S3_BUCKET = "kcam-calibration-data"

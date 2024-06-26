@@ -7,20 +7,17 @@ __copyright__ = """
     Other Patents Pending.
 """
 
-import os
 import io
-import csv
 import json
 
 import boto3
-
 import cv2
-import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
 import numpy as np
 
-def main():
 
+def main():
     # Setup device list
     device_list = []
     # doc_path = '/home/canyon/Test_Equipment/hub_alignment_test/docs2.csv'
@@ -36,55 +33,56 @@ def main():
 
     # Setup boto3
     cred = boto3.Session().get_credentials()
-    ACCESS_KEY = cred.access_key 
-    SECRET_KEY = cred.secret_key 
-    SESSION_TOKEN = cred.token 
+    ACCESS_KEY = cred.access_key
+    SECRET_KEY = cred.secret_key
+    SESSION_TOKEN = cred.token
 
     s3client = boto3.client('s3',
-                            aws_access_key_id = ACCESS_KEY,
-                            aws_secret_access_key = SECRET_KEY,
-                            aws_session_token = SESSION_TOKEN,
+                            aws_access_key_id=ACCESS_KEY,
+                            aws_secret_access_key=SECRET_KEY,
+                            aws_session_token=SESSION_TOKEN,
                             )
     _bucket_name = 'kcam-calibration-data'
 
     _device_type = 'hydra'
-    hub_base_image = [ '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_one.jpeg',
-                        '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_two.jpeg',
-                        '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_three.jpeg',
-                        '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_four.jpeg',
-                        '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_five.jpeg',
-                        '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_six.jpeg']
-    
-    head_base_image = [ 
-                        '/home/canyon/Test_Equipment/head_alignment_test/port0_one.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port0_two.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port0_three.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port0_four.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port0_five.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port0_six.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port1_one.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port1_two.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port1_three.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port1_four.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port1_five.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port1_six.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port2_one.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port2_two.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port2_three.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port2_four.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port2_five.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port2_six.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port3_one.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port3_two.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port3_three.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port3_four.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port3_five.jpeg',
-                        '/home/canyon/Test_Equipment/head_alignment_test/port3_six.jpeg',
-                        ]
-    
+    hub_base_image = ['/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_one.jpeg',
+                      '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_two.jpeg',
+                      '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_three.jpeg',
+                      '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_four.jpeg',
+                      '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_five.jpeg',
+                      '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_six.jpeg']
+
+    head_base_image = [
+        '/home/canyon/Test_Equipment/head_alignment_test/port0_one.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port0_two.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port0_three.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port0_four.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port0_five.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port0_six.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port1_one.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port1_two.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port1_three.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port1_four.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port1_five.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port1_six.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port2_one.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port2_two.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port2_three.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port2_four.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port2_five.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port2_six.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port3_one.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port3_two.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port3_three.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port3_four.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port3_five.jpeg',
+        '/home/canyon/Test_Equipment/head_alignment_test/port3_six.jpeg',
+    ]
+
     for _device_id in device_list:
         # Get cal files
         parallax_check(_device_id, s3client, _bucket_name, hub_base_image, head_base_image)
+
 
 def parallax_check(_device_id, s3client, _bucket_name, hub_base_image, head_base_image):
     print(_device_id)
@@ -97,20 +95,19 @@ def parallax_check(_device_id, s3client, _bucket_name, hub_base_image, head_base
     data_content = json.loads(json_file_content)
     camera_id = data_content['camera_id']
 
-
     try:
         if _device_id.startswith("E661"):
             key = f'{_device_id}/calculated_transformations2/{_device_id}/mapped_mask_matrix_hydra_{_device_id}.npy'
             mask_response = s3client.get_object(Bucket=_bucket_name, Key=key)
-        # mask_response = s3client.get_object(Bucket=_bucket_name, Key=f'{_device_id}/calculated_transformations/{camera_id}/mapped_mask_matrix_mosaic_{camera_id}.npy')
+            # mask_response = s3client.get_object(Bucket=_bucket_name, Key=f'{_device_id}/calculated_transformations/{camera_id}/mapped_mask_matrix_mosaic_{camera_id}.npy')
             _base_image = head_base_image
             x, y = 4, 6
         else:
             key = f'{_device_id}/calculated_transformations2/{_device_id}/mapped_mask_matrix_mosaic_{_device_id}.npy'
             mask_response = s3client.get_object(Bucket=_bucket_name, Key=key)
-        # mask_response = s3client.get_object(Bucket=_bucket_name, Key=f'{_device_id}/calculated_transformations/{_device_id}/mapped_mask_matrix_hydra_{_device_id}.npy')
-            _base_image = hub_base_image 
-            x, y = 2, 3   
+            # mask_response = s3client.get_object(Bucket=_bucket_name, Key=f'{_device_id}/calculated_transformations/{_device_id}/mapped_mask_matrix_hydra_{_device_id}.npy')
+            _base_image = hub_base_image
+            x, y = 2, 3
     except Exception as e:
         print(e, "Did you putCal?")
         return
@@ -122,7 +119,7 @@ def parallax_check(_device_id, s3client, _bucket_name, hub_base_image, head_base
     mask_map = mask_map.astype(np.uint8) * 255
 
     mask_edges = cv2.Canny(mask_map, 30, 200)
-    mask_edges_contours, _ = cv2.findContours(mask_edges,cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    mask_edges_contours, _ = cv2.findContours(mask_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     fig, axs = plt.subplots(x, y)
     # print(axs.shape)
@@ -141,7 +138,6 @@ def parallax_check(_device_id, s3client, _bucket_name, hub_base_image, head_base
         axs[row][col].axis('off')
     plt.subplots_adjust(wspace=0, hspace=0.01, bottom=0, top=.95)
     plt.show()
-
 
 
 if __name__ == "__main__":

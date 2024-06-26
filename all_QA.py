@@ -1,9 +1,9 @@
+import QA_Check_Auto as qa
 import getCal as get
 import paralax_calibrator as cal
-import putCal as put
 import paralax_check as check
-from auto_calibration_new.automatic_rgb_thermal_mapping import do_automatic_rgb_calibration_mapping as darcm
-import QA_Check_Auto as qa
+import putCal as put
+
 
 def main():
     # print("Getting files...")
@@ -27,6 +27,7 @@ def main():
     check.main()
     print("Performing QA...")
     qa.main()
+
 
 if __name__ == "__main__":
     main()

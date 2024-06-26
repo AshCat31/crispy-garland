@@ -8,7 +8,8 @@ def download_json(deviceId):
     if output != 0:
         return False
     return True
-    
+
+
 head_ct = hub_ct = 0
 with open("/home/canyon/Test_Equipment/SNs_with_IDs.txt", "r") as id_file:
     for line in id_file:
@@ -23,7 +24,7 @@ with open("/home/canyon/Test_Equipment/SNs_with_IDs.txt", "r") as id_file:
             continue
         dev_type = data_content['qr_code'].split(";")[0]
         if dev_type == "400-0103-02":
-            hub_ct+=1
+            hub_ct += 1
         else:
             head_ct += 1
 print("Hubs:", hub_ct)

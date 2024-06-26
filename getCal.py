@@ -11,6 +11,7 @@ def download_device(deviceId):
         return False
     return True
 
+
 def main():
     with open(_device_file) as csvFile:
         content = csvFile.read()  # allows tabs and spaces

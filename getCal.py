@@ -1,6 +1,6 @@
 import os
 
-_device_file = '/home/canyon/Test_Equipment/QA_ids.txt'
+_device_file = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
 
 
 def download_device(deviceId):

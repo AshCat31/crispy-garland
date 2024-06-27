@@ -116,35 +116,7 @@ class Mapper:
 
         logging.info(
             f"Calibrating device {device_id}, type {device_type}, IDX {device_idx}")
-        if self.validate_calibration_points(thermal_coordinates) and self.validate_calibration_points(rgb_coordinates):
-            thermal_coordinates = convert_coordinates_to_numpy_array(
-                thermal_coordinates)
-            rgb_coordinates = convert_coordinates_to_numpy_array(rgb_coordinates)
-
-            parallax_calibrator = ParalaxCalibrator()
-            mask_matrix, coordinate_map, sensitivity_matrix = parallax_calibrator(
-                thermal_image,
-                rgb_image,
-                thermal_coordinates,
-                rgb_coordinates
-            )
-
-            if self.validate_mask_matrix(mask_matrix):
-                directory = f"{device_id}/calculated_transformations/{device_idx}"
-
-                if not debug_mode:
-                    write_numpy_to_s3(
-                        f"{directory}/mapped_coordinates_matrix_{device_type}_{device_idx}.npy", coordinate_map)
-                    write_numpy_to_s3(
-                        f"{directory}/mapped_mask_matrix_{device_type}_{device_idx}.npy", mask_matrix)
-                    write_numpy_to_s3(
-                        f"{directory}/sensitivity_correction_matrix_{device_type}_{device_idx}.npy", sensitivity_matrix)
-                    write_numpy_to_s3(
-                        f"{device_id}/trml_{device_idx}_9element_coord.npy", thermal_coordinates)
-                    write_numpy_to_s3(
-                        f"{device_id}/rgb_{device_idx}_9element_coord.npy", rgb_coordinates)
-                calibration_success = True
-        elif self.validate_calibration_points(rgb_coordinates):
+        if self.validate_calibration_points(rgb_coordinates):
             debug_rgb_image = rgb_image.copy()
             for x, y in rgb_coordinates:
                 cv2.circle(debug_rgb_image, (int(x), int(y)), 0, (0, 0, 255), 10)
@@ -153,7 +125,9 @@ class Mapper:
             if calibration_success:
                 write_numpy_to_s3(
                     f"{device_id}/rgb_{device_idx}_9element_coord.npy", rgb_coordinates)
-        elif self.validate_calibration_points(thermal_coordinates):
+            else:
+                return calibration_success
+        if self.validate_calibration_points(thermal_coordinates):
             debug_thermal_image = thermal_image.copy()
         
             if debug_thermal_image.ndim != 3:
@@ -170,9 +144,39 @@ class Mapper:
             if calibration_success:
                 write_numpy_to_s3(
                     f"{device_id}/trml_{device_idx}_9element_coord.npy", thermal_coordinates)
+            else:
+                return calibration_success
         else:
             mask_matrix = np.zeros(self.IMAGE_SIZE)
+        if not (self.validate_calibration_points(thermal_coordinates) and self.validate_calibration_points(rgb_coordinates)):
+            return calibration_success
 
+        thermal_coordinates = convert_coordinates_to_numpy_array(
+            thermal_coordinates)
+        rgb_coordinates = convert_coordinates_to_numpy_array(rgb_coordinates)
+        parallax_calibrator = ParalaxCalibrator()
+        print(thermal_coordinates.shape,
+            rgb_coordinates.shape)
+        mask_matrix, coordinate_map, sensitivity_matrix = parallax_calibrator(
+            thermal_image,
+            rgb_image,
+            thermal_coordinates,
+            rgb_coordinates
+        )
+        if self.validate_mask_matrix(mask_matrix):
+            directory = f"{device_id}/calculated_transformations/{device_idx}"
+            if not debug_mode:
+                write_numpy_to_s3(
+                    f"{directory}/mapped_coordinates_matrix_{device_type}_{device_idx}.npy", coordinate_map)
+                write_numpy_to_s3(
+                    f"{directory}/mapped_mask_matrix_{device_type}_{device_idx}.npy", mask_matrix)
+                write_numpy_to_s3(
+                    f"{directory}/sensitivity_correction_matrix_{device_type}_{device_idx}.npy", sensitivity_matrix)
+                write_numpy_to_s3(
+                    f"{device_id}/trml_{device_idx}_9element_coord.npy", thermal_coordinates)
+                write_numpy_to_s3(
+                    f"{device_id}/rgb_{device_idx}_9element_coord.npy", rgb_coordinates)
+            calibration_success = True
         debug_image = generate_debug_image(
             thermal_image, thermal_coordinates, rgb_image, rgb_coordinates, mask_matrix)
 

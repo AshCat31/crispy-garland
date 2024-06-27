@@ -3,7 +3,7 @@ import getCal as get
 import paralax_calibrator as cal
 import paralax_check as check
 import putCal as put
-
+from auto_calibration_new.automatic_rgb_thermal_mapping import Mapper
 
 def main():
     # print("Getting files...")

@@ -53,7 +53,7 @@ def main():
             except IndexError:
                 logger.warning("SN not found.")
                 serial_number = "none"
-            print(device_id + "   " + serial_number)
+            # print(device_id + "   " + serial_number)
             view_image = 'N'
             is_outside = False
             outside_points = []
@@ -110,6 +110,7 @@ def main():
                         qr_code = data_content['qr_code']
                         part_number = data_content['part_number']
                         js_serial_number = data_content['serial_number']
+                        print(data_content['work_order'])
 
                         # Checking if inputs match data.json
                         if device_id != js_device_id:

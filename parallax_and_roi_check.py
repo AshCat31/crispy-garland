@@ -19,7 +19,7 @@ from PIL import Image as PImage
 
 def main():
     device_list = []
-    doc_path = '/home/canyon/Test_Equipment/QA_ids.txt'
+    doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
     with open(doc_path, 'r') as file:
         for line in file:
             device_list.append(line.split()[0])
@@ -142,7 +142,7 @@ def main():
     #     '/home/canyon/Test_Equipment/head_alignment_test/port3_seven.npy',
     #     '/home/canyon/Test_Equipment/head_alignment_test/port3_eight.npy'],
     # ]
-    show_plot = True
+    show_plot = False
     device_type_dict = {"100": ("_mosaic", hub_base_image, hub_rois), "E66": ("_hydra", head_base_image, head_rois)}
     xy_adjustments = []
     failures = []
@@ -174,17 +174,15 @@ def main():
 def get_mask(ct, device_id, device_type, bucket_name):
     global mask_map
     key = f'{device_id}/calculated_transformations{ct}/{device_id}/mapped_mask_matrix{device_type}_{device_id}.npy'
-    local_directory = '/home/canyon/S3bucket/'
-    # mask_edges_contours = s3client.get_object(Bucket=bucket_name, Key=key)
+    print(key)
+    local_directory='/home/canyon/S3bucket/'
     # mask_bytes = io.BytesIO(mask_edges_contours["Body"].read())
     # mask_bytes.seek(0)
     try:
         mask_map = np.load(os.path.join(local_directory, key)).astype(np.uint8) * 255
     except:  # currently not working?? now?
         try:
-            os.mkdir(os.path.join(local_directory, f'{device_id}'))
-            os.mkdir(os.path.join(local_directory, f'{device_id}/calculated_transformations{ct}'))
-            os.mkdir(os.path.join(local_directory, f'{device_id}/calculated_transformations{ct}/{device_id}'))
+            os.makedirs(os.path.join(local_directory, f'{device_id}/calculated_transformations{ct}/{device_id}'))
         except FileExistsError:
             try:
                 os.mkdir(os.path.join(local_directory, f'{device_id}/calculated_transformations{ct}'))

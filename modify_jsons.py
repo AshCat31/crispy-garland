@@ -11,7 +11,7 @@ def main(s3c=None, bkn=None):
     logging.addLevelName(logging.ERROR, "\033[1;41m%s\033[1;0m" % logging.getLevelName(logging.ERROR))
     logging.basicConfig(level=logging.WARN, format=log_format)
 
-    if s3c == None:
+    if s3c is None:
         s3client, _bucket_name = setup_s3()
     else:
         s3client, _bucket_name = s3c, bkn
@@ -39,5 +39,7 @@ def main(s3c=None, bkn=None):
                     print("Keeping existing value for", key)
             except Exception as e:
                 print(device_id, e)
+
+
 if __name__ == '__main__':
     main()

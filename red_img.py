@@ -1,5 +1,7 @@
-from PIL import Image
 import os
+
+from PIL import Image
+
 
 def process_image(input_image_path, output_image_path, red_threshold=235):
     """
@@ -39,6 +41,7 @@ def process_image(input_image_path, output_image_path, red_threshold=235):
     # Save the modified image
     output_img.save(output_image_path)
 
+
 def process_images_from_file(ids_file):
     """
     Process images based on IDs listed in a file.
@@ -61,6 +64,7 @@ def process_images_from_file(ids_file):
 
             # Process the image
             process_image(red_output_image_path, output_image_path)
+
 
 # Example usage:
 ids_file = 'QA_ids.txt'

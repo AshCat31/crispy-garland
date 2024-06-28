@@ -716,7 +716,8 @@ def cal_device(dev_id):
     rgb_coordinates_file_path = base_path + '/rgb_' + dev_id + '_9element_coord.npy'
     trml_coordinates_file_path = base_path + '/trml_' + dev_id + '_9element_coord.npy'
     coordinatFiles = os.path.isfile(rgb_coordinates_file_path) and os.path.isfile(trml_coordinates_file_path)
-    if not coordinatFiles:
+    if not os.path.isfile(trml_coordinates_file_path):
+        print("select thermal")
         # Read thermal image
         trml_arr = np.load(trml_img_path)
         # Make sure that thermal image is 2d (single thermal shot) or 3d (a set of thermal shots)
@@ -737,7 +738,11 @@ def cal_device(dev_id):
         trml_elements_coordinates = sample_coordinate_of_corners(trml_img)  # thermal element coordinates
         if trml_elements_coordinates is not None:
             save_sampled_coordinates(trml_elements_coordinates, trml_coordinates_file_path)
-
+    else:
+        print("Using existing Thermal coordinates")
+        trml_elements_coordinates = np.load(trml_coordinates_file_path)
+    if not os.path.isfile(rgb_coordinates_file_path):
+        print("select rgb")
         # Read rgb image
         rgb_img = mpimg.imread(rgb_img_path)
 
@@ -751,8 +756,7 @@ def cal_device(dev_id):
         if rgb_elements_coordinates is not None:
             save_sampled_coordinates(rgb_elements_coordinates, rgb_coordinates_file_path)
     else:
-        print("Using existing coordinates")
-        trml_elements_coordinates = np.load(trml_coordinates_file_path)
+        print("Using existing RGB coordinates")
         rgb_elements_coordinates = np.load(rgb_coordinates_file_path)
     # -----------------------------------------------------------
     # Create Cal Files

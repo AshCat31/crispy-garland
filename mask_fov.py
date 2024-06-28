@@ -75,13 +75,13 @@ def get_mask(ct, device_id, device_type, bucket_name):
         try:
             os.makedirs(os.path.join(local_directory, f'{device_id}/calculated_transformations{ct}/{device_id}'))
         except FileExistsError:
-            try:
-                os.mkdir(os.path.join(local_directory, f'{device_id}/calculated_transformations{ct}'))
-                os.mkdir(os.path.join(local_directory, f'{device_id}/calculated_transformations{ct}/{device_id}'))
-            except FileExistsError:
-                try:
-                    os.mkdir(os.path.join(local_directory, f'{device_id}/calculated_transformations{ct}/{device_id}'))
-                except:
+            # try:
+            #     os.mkdir(os.path.join(local_directory, f'{device_id}/calculated_transformations{ct}'))
+            #     os.mkdir(os.path.join(local_directory, f'{device_id}/calculated_transformations{ct}/{device_id}'))
+            # except FileExistsError:
+            #     try:
+            #         os.mkdir(os.path.join(local_directory, f'{device_id}/calculated_transformations{ct}/{device_id}'))
+            #     except:
                     pass
         s3client.download_file(Bucket=bucket_name, Key=key,
                                Filename=os.path.join(local_directory, key))

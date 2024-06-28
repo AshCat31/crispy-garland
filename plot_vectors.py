@@ -1,9 +1,8 @@
-import matplotlib.pyplot as plt
-from matplotlib import patches
 import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.cm import ScalarMappable
 from matplotlib.patches import Ellipse
-import numpy as np
 
 
 def vector_plot(magnitude, angle_degrees, color='black', zorder=10):

@@ -1,5 +1,5 @@
-# This is a copy of the version of this script found on Test_Equpiment Branch "QA_Check" as of 6/6/24
-# This is the updated QA Check script that accuratly Checks for what % of an ROI is outside the mask border.
+# This is a copy of the version of this script found on Test_Equipment Branch "QA_Check" as of 6/6/24
+# This is the updated QA Check script that accurately Checks for what % of an ROI is outside the mask border.
 # This script is designed for Internal QA Checking, and has the ability to show an image of ROI's that are outside the mask border for review.
 # most recent update adds full support for hub devices
 
@@ -232,7 +232,7 @@ def main():
                             Auto_ROI = False
                             man_rev_req = True
                             logger.error("Auto ROI check FAILED.")
-                            print("Do you wnat to start the manual review?")
+                            print("Do you want to start the manual review?")
                             view_image = input("Type 'Y' for yes or 'N' for No: ").upper()
                             if view_image == 'Y':
                                 logger.info("Press 'Y' to close Image")

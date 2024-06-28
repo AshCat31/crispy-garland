@@ -170,6 +170,7 @@ def main():
     # print("mean x:", statistics.mean(np.asarray(xy_adjustments)[:, 0]),"mean y:", statistics.mean(np.asarray(xy_adjustments)[:, 1]))
     # print("SD x:", statistics.stdev(np.asarray(xy_adjustments)[:, 0]),"SD y:", statistics.stdev(np.asarray(xy_adjustments)[:, 1]))
 
+
 # def get_inner_dir(bucket_name, parent_directory):
 #     response = s3client.list_objects_v2(
 #         Bucket=bucket_name,
@@ -184,7 +185,7 @@ def get_mask(ct, device_id, device_type, bucket_name):
     # inner_dir = get_inner_dir(bucket_name, f'{device_id}/calculated_transformations{ct}/')
     key = f'{device_id}/calculated_transformations{ct}/{device_id}/mapped_mask_matrix{device_type}_{device_id}.npy'
     # print(key)s
-    local_directory='/home/canyon/S3bucket/'
+    local_directory = '/home/canyon/S3bucket/'
     try:
         mask_map = np.load(os.path.join(local_directory, key)).astype(np.uint8) * 255
     except:  # currently not working?? now?

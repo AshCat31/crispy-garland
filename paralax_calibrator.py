@@ -20,14 +20,15 @@ __copyright__ = """
 import logging
 import math
 import os
-# Ignore DeprecationWarning:
-import warnings
 
 import cv2
 import matplotlib.image as mpimg
 import numpy as np
 from matplotlib import pyplot as plt
 from numpy.linalg import inv
+
+# Ignore DeprecationWarning:
+import warnings
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -51,7 +52,7 @@ class ParalaxCalibrator:
         self.rgb_d = 1 - self.rgb_c
         self.rgb_radius_norm_factor = self.rgb_img_size[0] / 2  # The smallest dimension divided by 2
 
-        # Default emissitivy value, in case that no emissivity_matrix avilable
+        # Default emissivity value, in case that no emissivity_matrix available
         self.default_emissivity = 0.9
 
         # Thermal camera:
@@ -654,11 +655,11 @@ class ParalaxCalibrator:
         a, b, c = parabolic_coef
         return a * (original_angle ** 2) + b * original_angle + c
 
-    def get_trml_coordinates(self, unbounded_coordinates, trml_img_size, round=True):
+    def get_trml_coordinates(self, unbounded_coordinates, trml_img_size, round_bool=True):
         trml_row = np.clip(np.round(unbounded_coordinates[1]), 0, trml_img_size[0] - 1)
         trml_col = np.clip(np.round(unbounded_coordinates[0]), 0, trml_img_size[1] - 1)
 
-        if round:
+        if round_bool:
             trml_row = int(trml_row)
             trml_col = int(trml_col)
         return trml_row, trml_col
@@ -666,10 +667,10 @@ class ParalaxCalibrator:
     def get_sensitivity_correction_factor(self, angular_coordinates):
         approx_true_angle_x = (angular_coordinates[0] * 75) / 100
         approx_true_angle_y = (angular_coordinates[1] * 110) / 100
-        angular_diff_distnace = pow((pow(approx_true_angle_x, 2) + pow(approx_true_angle_y, 2)), 0.5)
+        angular_diff_distance = pow((pow(approx_true_angle_x, 2) + pow(approx_true_angle_y, 2)), 0.5)
 
         # Get gaussian value
-        gaussian_val = math.exp(-0.5 * pow(angular_diff_distnace / self.sens_sigma, 2))
+        gaussian_val = math.exp(-0.5 * pow(angular_diff_distance / self.sens_sigma, 2))
 
         sensitivity_correction_factor = 1 / gaussian_val
 

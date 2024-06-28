@@ -116,7 +116,7 @@ class Mapper:
 
         logging.info(
             f"Calibrating device {device_id}, type {device_type}, IDX {device_idx}")
-        if self.validate_calibration_points(rgb_coordinates) and not (os.path.isfile(rgb_coordinates_file_path) and not overwrite):
+        if self.validate_calibration_points(rgb_coordinates) and (overwrite or not os.path.isfile(rgb_coordinates_file_path)):
             debug_rgb_image = rgb_image.copy()
             for x, y in rgb_coordinates:
                 cv2.circle(debug_rgb_image, (int(x), int(y)), 0, (0, 0, 255), 10)
@@ -127,7 +127,7 @@ class Mapper:
                     f"{device_id}/rgb_{device_id}_9element_coord.npy", rgb_coordinates)
             else:
                 return calibration_success
-        if self.validate_calibration_points(thermal_coordinates) and not (os.path.isfile(trml_coordinates_file_path) and not overwrite):
+        if self.validate_calibration_points(thermal_coordinates) and (overwrite or not os.path.isfile(trml_coordinates_file_path)):
             debug_thermal_image = thermal_image.copy()
         
             if debug_thermal_image.ndim != 3:

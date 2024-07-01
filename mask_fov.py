@@ -32,21 +32,51 @@ def main():
                             aws_secret_access_key=SECRET_KEY,
                             aws_session_token=SESSION_TOKEN,
                             )
-    img = np.zeros((460, 385)).astype(np.uint8)
-    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    # img = np.zeros((460, 385)).astype(np.uint8)
+    # img = PImage.open('/home/canyon/Test_Equipment/head_alignment_test/port0_one.jpeg')
+    # roi_file = '/home/canyon/Test_Equipment/head_alignment_test/auto_port1_one.npy'
+    # roi_file = '/home/canyon/Test_Equipment/head_alignment_test/auto_port2_one.npy'
+    # roi_file = '/home/canyon/Test_Equipment/head_alignment_test/auto_port0_one.npy'
+    device_rois = [
+'/home/canyon/Test_Equipment/head_alignment_test/auto_port0_one.npy',
+        '/home/canyon/Test_Equipment/head_alignment_test/auto_port1_one.npy',
+'/home/canyon/Test_Equipment/head_alignment_test/auto_port2_one.npy',
+]
+    width = 385
+    height = 460
     fig, axs = plt.subplots(1,1)
+    # fig, axs = plt.subplots(1,3)
+    colors = ['cyan', 'brown', 'magenta', 'blue', 'green', 'yellow', 'orange', 'red']
+    colors2 = ['gray', 'lightgrey', 'darkgrey']
+    cidx2 = 0
+    for roi_file in device_rois:
+        cidx = 0
+        rois = np.load(roi_file)
+        for indx, roi in enumerate(rois):
+            if ('port1' in roi_file and (colors[cidx%8]=='cyan' or colors[cidx%8]=='yellow')) or \
+            ('port2' in roi_file and (colors[cidx%8]=='cyan' or colors[cidx%8]=='red')) or \
+            ('port0' in roi_file and (colors[cidx%8]=='cyan' or colors[cidx%8]=='red' or colors[cidx%8]=='blue')):
+            # if True:
+                roi_x, roi_y = width - roi[:, :, 0], height - roi[:, :, 1]
+                axs.plot(roi_x, roi_y, 'o', color=colors2[cidx2%8], markersize=5)
+            cidx+=1
+        cidx2 +=1
+    img_padded = np.zeros((460, 385)).astype(np.uint8)
+    # img_padded[115:435, 40:280] = np.asarray(img.rotate(180))
+    img= img_padded
+    img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     h_sorted_masks = []
     for id in bad_list:
         plot_mask(id, img, (255,50,255), h_sorted_masks)
     #     # print(idx)
-    print(h_sorted_masks)
-    for line in sorted(h_sorted_masks, key=lambda x: -x[0]):
-        # list.append([height, mask_edges_contours, color2])
+    # print(h_sorted_masks)
+    h_sorted_masks = sorted(h_sorted_masks, key=lambda x: -x[0])
+    for line in h_sorted_masks:
+    # for line in h_sorted_masks[:int(.5*len(h_sorted_masks))]:
         cv2.drawContours(img, line[1], -1, line[2], 1)
-    # for id in good_list:
-    #     plot_mask(id, img, (0,255,0))
-    # fig, axs = plt.subplots(1,3)
-    axs.imshow(img[65:,40:,], cmap='grey')
+    for id in good_list:
+        plot_mask(id, img, (0,255,0))
+    axs.imshow(img[65:,40:], cmap='grey')
     # axs[2].imshow(img, cmap='grey')
     # bins = 9    
     # # Plot histograms and get counts

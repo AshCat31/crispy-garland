@@ -87,7 +87,63 @@ class Mapper:
             numpy_arr[i][1] = int(y)
         return numpy_arr
 
+    def brighten_bottom_right_corner(self, image_array):
+        height, width = image_array.shape[:2]
 
+        # Calculate boundaries for each corner
+        start_row1 = 0
+        end_row1 = height // 3
+        start_col1 = 0
+        end_col1 = width // 3
+
+        start_row2 = 0
+        end_row2 = height // 3
+        start_col2 = 2 * width // 3
+        end_col2 = width
+
+        start_row3 = 2 * height // 3
+        end_row3 = height
+        start_col3 = 0
+        end_col3 = width // 3
+
+        start_row4 = 2 * height // 3
+        end_row4 = height
+        start_col4 = 2 * width // 3
+        end_col4 = width
+
+        # Extract corners
+        corner1 = image_array[start_row1:end_row1, start_col1:end_col1]
+        corner2 = image_array[start_row2:end_row2, start_col2:end_col2]
+        corner3 = image_array[start_row3:end_row3, start_col3:end_col3]
+        corner4 = image_array[start_row4:end_row4, start_col4:end_col4]
+
+        # Find minimum brightness values in each corner
+        min_brightness1 = np.min(corner1)
+        min_brightness2 = np.min(corner2)
+        min_brightness3 = np.min(corner3)
+        min_brightness4 = np.min(corner4)
+
+        # Calculate brightness adjustments based on differences from min_brightness
+        brightness_adjustment1 = 1 + 0.06 *0.06* (corner1 - min_brightness1)
+        brightness_adjustment2 = 1 + 0.06 *0.06* (corner2 - min_brightness2)
+        brightness_adjustment3 = 1 + 0.06 *0.06* (corner3 - min_brightness3)
+        brightness_adjustment4 = 1 + 0.06 *0.06* (corner4 - min_brightness4)
+        # Ensure values are within [0, 255] range
+        brightened_corner1 = np.clip(corner1 * brightness_adjustment1, 0, 255).astype(np.uint8)
+        brightened_corner2 = np.clip(corner2 * brightness_adjustment2, 0, 255).astype(np.uint8)
+        brightened_corner3 = np.clip(corner3 * brightness_adjustment3, 0, 255).astype(np.uint8)
+        brightened_corner4 = np.clip(corner4 * brightness_adjustment4, 0, 255).astype(np.uint8)
+
+        # Create a copy of the original image and replace the corners
+        brightened_image = np.copy(image_array)
+        # brightened_image[start_row1:end_row1, start_col1:end_col1] = brightened_corner1
+        # brightened_image[start_row2:end_row2, start_col2:end_col2] = brightened_corner2
+        # brightened_image[start_row3:end_row3, start_col3:end_col3] = brightened_corner3
+        # brightened_image[start_row4:end_row4, start_col4:end_col4] = brightened_corner4
+
+###### 23/41 with (1/41 too bright), 11/41 w/o
+        return brightened_image
+    
     def do_automatic_rgb_calibration_mapping(self, device_id, debug_mode=False, overwrite=False):
         """Do automatic calibration mapping and send results to s3"""
         basePath = os.path.join("/home/canyon/S3bucket/", device_id)
@@ -110,13 +166,16 @@ class Mapper:
 
         is_hydra = device_type == self.HYDRA_DEVICE_NAME
         thermal_coordinates, _, _ = auto_point_detection.find_calibration_points_on_heatmap(
-            thermal_image, is_hydra=is_hydra)
+            self.brighten_bottom_right_corner(thermal_image), is_hydra=is_hydra)
         rgb_coordinates, _, _ = auto_point_detection.find_calibration_points_on_rgb_photo(
             gray_rgb_image)
 
         logging.info(
             f"Calibrating device {device_id}, type {device_type}, IDX {device_idx}")
-        if self.validate_calibration_points(rgb_coordinates) and (overwrite or not os.path.isfile(rgb_coordinates_file_path)):
+        # print((thermal_image.))
+        # return False
+        # if self.validate_calibration_points(rgb_coordinates) and (overwrite or not os.path.isfile(rgb_coordinates_file_path)):
+        if False:
             debug_rgb_image = rgb_image.copy()
             for x, y in rgb_coordinates:
                 cv2.circle(debug_rgb_image, (int(x), int(y)), 0, (0, 0, 255), 10)
@@ -127,8 +186,9 @@ class Mapper:
                     f"{device_id}/rgb_{device_id}_9element_coord.npy", rgb_coordinates)
             else:
                 return calibration_success
-        if self.validate_calibration_points(thermal_coordinates) and (overwrite or not os.path.isfile(trml_coordinates_file_path)):
-            debug_thermal_image = thermal_image.copy()
+        if True:
+        # if self.validate_calibration_points(thermal_coordinates) and (overwrite or not os.path.isfile(trml_coordinates_file_path)):
+            debug_thermal_image = self.brighten_bottom_right_corner(thermal_image).copy()
         
             if debug_thermal_image.ndim != 3:
                 debug_thermal_image = cv2.cvtColor(

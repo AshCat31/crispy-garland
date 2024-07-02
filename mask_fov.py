@@ -13,12 +13,15 @@ def main():
     bad_list = []
     x_diffs = []
     y_diffs = []
-    # doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
+    doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
     good_path = "/home/canyon/Test_Equipment/crispy-garland/integrated_heads_not_p3.txt"
     bad_path = "/home/canyon/Test_Equipment/crispy-garland/heads_roi_rma.txt"
     with open(good_path, 'r') as file:
         for line in file:
             good_list.append(line.split()[0])
+    with open(doc_path, 'r') as file:
+        for line in file:
+            device_list.append(line.split()[0])
     with open(bad_path, 'r') as file:
         for line in file:
             bad_list.append(line.split()[0])
@@ -32,11 +35,6 @@ def main():
                             aws_secret_access_key=SECRET_KEY,
                             aws_session_token=SESSION_TOKEN,
                             )
-    # img = np.zeros((460, 385)).astype(np.uint8)
-    # img = PImage.open('/home/canyon/Test_Equipment/head_alignment_test/port0_one.jpeg')
-    # roi_file = '/home/canyon/Test_Equipment/head_alignment_test/auto_port1_one.npy'
-    # roi_file = '/home/canyon/Test_Equipment/head_alignment_test/auto_port2_one.npy'
-    # roi_file = '/home/canyon/Test_Equipment/head_alignment_test/auto_port0_one.npy'
     device_rois = [
 '/home/canyon/Test_Equipment/head_alignment_test/auto_port0_one.npy',
         '/home/canyon/Test_Equipment/head_alignment_test/auto_port1_one.npy',
@@ -56,7 +54,6 @@ def main():
             if ('port1' in roi_file and (colors[cidx%8]=='cyan' or colors[cidx%8]=='yellow')) or \
             ('port2' in roi_file and (colors[cidx%8]=='cyan' or colors[cidx%8]=='red')) or \
             ('port0' in roi_file and (colors[cidx%8]=='cyan' or colors[cidx%8]=='red' or colors[cidx%8]=='blue')):
-            # if True:
                 roi_x, roi_y = width - roi[:, :, 0], height - roi[:, :, 1]
                 axs.plot(roi_x, roi_y, 'o', color=colors2[cidx2%8], markersize=5)
             cidx+=1
@@ -70,10 +67,12 @@ def main():
         plot_mask(id, img, (255,50,255), h_sorted_masks)
     #     # print(idx)
     # print(h_sorted_masks)
-    h_sorted_masks = sorted(h_sorted_masks, key=lambda x: -x[0])
-    for line in h_sorted_masks:
-    # for line in h_sorted_masks[:int(.5*len(h_sorted_masks))]:
-        cv2.drawContours(img, line[1], -1, line[2], 1)
+    # h_sorted_masks = sorted(h_sorted_masks, key=lambda x: -x[0])
+    # for line in h_sorted_masks:
+    # # for line in h_sorted_masks[:int(.5*len(h_sorted_masks))]:
+    #     cv2.drawContours(img, line[1], -1, line[2], 1)
+    for id in device_list:
+        plot_mask(id, img, (255,255,240))
     for id in good_list:
         plot_mask(id, img, (0,255,0))
     axs.imshow(img[65:,40:], cmap='grey')
@@ -152,7 +151,8 @@ def plot_mask(id, img, color, list=None):
     height = find_extreme_indices(mask_map)
     mask_edges = cv2.Canny(mask_map*255, 30, 200)
     mask_edges_contours, _ = cv2.findContours(mask_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    color2 = (color[0]-255*normalize(height), color[1], color[2]*normalize(height))
+    color2 = color
+    # color2 = (color[0]-255*normalize(height), color[1], color[2]*normalize(height))
     if list is not None:
         list.append([height, mask_edges_contours, color2])
     else:

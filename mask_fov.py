@@ -40,7 +40,7 @@ def main():
         '/home/canyon/Test_Equipment/head_alignment_test/auto_port1_one.npy',
 '/home/canyon/Test_Equipment/head_alignment_test/auto_port2_one.npy',
 ]
-    width = 385
+    width = 390
     height = 460
     fig, axs = plt.subplots(1,1)
     # fig, axs = plt.subplots(1,3)
@@ -58,15 +58,13 @@ def main():
                 axs.plot(roi_x, roi_y, 'o', color=colors2[cidx2%8], markersize=5)
             cidx+=1
         cidx2 +=1
-    img_padded = np.zeros((460, 385)).astype(np.uint8)
+    img_padded = np.zeros((height, width)).astype(np.uint8)
     # img_padded[115:435, 40:280] = np.asarray(img.rotate(180))
     img= img_padded
     img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     h_sorted_masks = []
     for id in bad_list:
         plot_mask(id, img, (255,50,255), h_sorted_masks)
-    #     # print(idx)
-    # print(h_sorted_masks)
     # h_sorted_masks = sorted(h_sorted_masks, key=lambda x: -x[0])
     # for line in h_sorted_masks:
     # # for line in h_sorted_masks[:int(.5*len(h_sorted_masks))]:

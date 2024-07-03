@@ -142,7 +142,7 @@ def main():
     #     '/home/canyon/Test_Equipment/head_alignment_test/port3_seven.npy',
     #     '/home/canyon/Test_Equipment/head_alignment_test/port3_eight.npy'],
     # ]
-    show_plot = True
+    show_plot = False
     device_type_dict = {"100": ("_mosaic", hub_base_image, hub_rois), "E66": ("_hydra", head_base_image, head_rois)}
     xy_adjustments = []
     failures = []
@@ -204,7 +204,6 @@ def get_mask(ct, device_id, device_type, bucket_name):
                                Filename=os.path.join(local_directory, key))
     mask_map = np.load(os.path.join(local_directory, key)).astype(np.uint8) * 255
     mask_edges = cv2.Canny(mask_map, 30, 200)
-    print(np.nonzero(mask_edges))
     mask_edges_contours, _ = cv2.findContours(mask_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     return mask_edges_contours
 

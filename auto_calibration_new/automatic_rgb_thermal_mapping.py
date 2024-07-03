@@ -106,9 +106,9 @@ class Mapper:
         start_col3 = 0
         end_col3 = width // 3
 
-        start_row4 = 2 * height // 3
+        start_row4 = 3 * height // 4
         end_row4 = height
-        start_col4 = 2 * width // 3
+        start_col4 = 3 * width // 4
         end_col4 = width
 
         # Extract corners
@@ -127,7 +127,7 @@ class Mapper:
         brightness_adjustment1 = 1 + 0.06 *0.06* (corner1 - min_brightness1)
         brightness_adjustment2 = 1 + 0.06 *0.06* (corner2 - min_brightness2)
         brightness_adjustment3 = 1 + 0.06 *0.06* (corner3 - min_brightness3)
-        brightness_adjustment4 = 1 + 0.06 *0.06* (corner4 - min_brightness4)
+        brightness_adjustment4 = 1 + 0.08 *0.07* (corner4 - min_brightness4)
         # Ensure values are within [0, 255] range
         brightened_corner1 = np.clip(corner1 * brightness_adjustment1, 0, 255).astype(np.uint8)
         brightened_corner2 = np.clip(corner2 * brightness_adjustment2, 0, 255).astype(np.uint8)
@@ -136,10 +136,10 @@ class Mapper:
 
         # Create a copy of the original image and replace the corners
         brightened_image = np.copy(image_array)
-        # brightened_image[start_row1:end_row1, start_col1:end_col1] = brightened_corner1
-        # brightened_image[start_row2:end_row2, start_col2:end_col2] = brightened_corner2
-        # brightened_image[start_row3:end_row3, start_col3:end_col3] = brightened_corner3
-        # brightened_image[start_row4:end_row4, start_col4:end_col4] = brightened_corner4
+        # brightened_image[start_row1:end_row1, start_col1:end_col1] = brightened_corner1  # tl
+        # brightened_image[start_row2:end_row2, start_col2:end_col2] = brightened_corner2  # tr?
+        # brightened_image[start_row3:end_row3, start_col3:end_col3] = brightened_corner3  # bl?
+        # brightened_image[start_row4:end_row4, start_col4:end_col4] = brightened_corner4  # br
 
 ###### 23/41 with (1/41 too bright), 11/41 w/o
         return brightened_image
@@ -174,20 +174,20 @@ class Mapper:
             f"Calibrating device {device_id}, type {device_type}, IDX {device_idx}")
         # print((thermal_image.))
         # return False
-        # if self.validate_calibration_points(rgb_coordinates) and (overwrite or not os.path.isfile(rgb_coordinates_file_path)):
-        if False:
+        if self.validate_calibration_points(rgb_coordinates) and (overwrite or not os.path.isfile(rgb_coordinates_file_path)):
+        # if False:
             debug_rgb_image = rgb_image.copy()
             for x, y in rgb_coordinates:
                 cv2.circle(debug_rgb_image, (int(x), int(y)), 0, (0, 0, 255), 10)
             self.see_image(debug_rgb_image, device_id)
-            calibration_success = input("Ok?").lower()[0] == 'y'
+            calibration_success = input("rgb Ok?").lower()[0] == 'y'
             if calibration_success:
                 write_numpy_to_s3(
                     f"{device_id}/rgb_{device_id}_9element_coord.npy", rgb_coordinates)
             else:
                 return calibration_success
-        if True:
-        # if self.validate_calibration_points(thermal_coordinates) and (overwrite or not os.path.isfile(trml_coordinates_file_path)):
+        # if True:
+        if self.validate_calibration_points(thermal_coordinates) and (overwrite or not os.path.isfile(trml_coordinates_file_path)):
             debug_thermal_image = self.brighten_bottom_right_corner(thermal_image).copy()
         
             if debug_thermal_image.ndim != 3:
@@ -200,7 +200,7 @@ class Mapper:
             debug_image = np.concatenate(
                 (debug_thermal_image), axis=1)
             self.see_image(debug_thermal_image, device_id)
-            calibration_success = input("Ok?").lower()[0] == 'y'
+            calibration_success = input("trml Ok?").lower()[0] == 'y'
             if calibration_success:
                 write_numpy_to_s3(
                     f"{device_id}/trml_{device_id}_9element_coord.npy", thermal_coordinates)

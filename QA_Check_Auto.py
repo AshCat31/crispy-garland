@@ -116,6 +116,7 @@ def main():
                         if device_id != js_device_id:
                             logger.error(" Device Id in Data.json is not the same as input.")
                             id_check = False
+                            print("id is", js_device_id, "not", device_id)
                         if serial_number != js_serial_number:
                             serial_number_check = False
                             if serial_number != 'none':
@@ -125,7 +126,7 @@ def main():
                         logger.info("Data from json File: ")
                         logger.info("Device ID:" + device_id)
                         logger.info("Device Type:" + device_type)
-                        logger.info("Hostname:" + hostname)
+                        logger.info("Hostname:" + str(hostname))
                         logger.info("Hardware ID:" + hardware_id)
                         logger.info("Camera ID:" + camera_id)
                         logger.info("QR Code:" + qr_code)

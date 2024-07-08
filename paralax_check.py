@@ -21,7 +21,7 @@ def main():
     # Setup device list
     device_list = []
     # doc_path = '/home/canyon/Test_Equipment/hub_alignment_test/docs2.csv'
-    doc_path = '/home/canyon/Test_Equipment/QA_ids.txt'
+    doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
     # with open(doc_path) as csv_file:
     #     reader = csv.reader(csv_file, delimiter='\t')
     #     for row in reader:

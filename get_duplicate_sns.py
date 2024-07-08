@@ -16,8 +16,8 @@ def get_matches(sn, id_idx, all_devices, matched_ids):
     matched_ids = matched_ids[0][0].split()
 
 
-output_path = "/home/canyon/Test_Equipment/duplicate_SNs.txt"
-id_list_path = "/home/canyon/Test_Equipment/all_devices.csv"
+output_path = "/home/canyon/Test_Equipment/crispy-garland/duplicate_SNs.txt"
+id_list_path = "/home/canyon/Test_Equipment/crispy-garland/all_devices.csv"
 
 id_idx = 0
 sn_idx = 1

@@ -13,7 +13,7 @@ def main():
     # print("Uploading files...")
     # put.main()
     print("Auto calibrating...")
-    with open("/home/canyon/Test_Equipment/QA_ids.txt", "r") as id_file:
+    with open("/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt", "r") as id_file:
         for line in id_file:
             device = line.split("    ")
             dev_id = device[0]

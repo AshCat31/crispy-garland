@@ -17,7 +17,7 @@ import numpy as np
 
 def main():
     device_list = []
-    doc_path = '/home/canyon/Test_Equipment/QA_ids.txt'
+    doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
     with open(doc_path, 'r') as file:
         for line in file:
             values = line.split()

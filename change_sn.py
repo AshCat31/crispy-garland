@@ -18,7 +18,7 @@ def upload_json(deviceId):
     return True
 
 
-with open("/home/canyon/Test_Equipment/IDs_to_change_SNs.txt", "r") as id_file:
+with open("/home/canyon/Test_Equipment/crispy-garland/IDs_to_change_SNs.txt", "r") as id_file:
     for line in id_file:
         device = line.split()
         id = device[0]

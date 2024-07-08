@@ -696,7 +696,7 @@ def main():
     # -----------------------------------------------------------
     ##### Grab Thermal and RGB Images
     # -----------------------------------------------------------
-    doc_path = '/home/canyon/Test_Equipment/QA_ids.txt'
+    doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
     with open(doc_path) as csv_file:
         # reader = csv.reader(csv_file, delimiter='\t')
         reader = csv_file.read()  # allows tabs and spaces

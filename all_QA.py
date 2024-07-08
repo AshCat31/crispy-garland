@@ -6,12 +6,6 @@ import putCal as put
 from auto_calibration_new.automatic_rgb_thermal_mapping import Mapper
 
 def main():
-    # print("Getting files...")
-    # get.main()
-    # print("Calibrating...")
-    # cal.main()
-    # print("Uploading files...")
-    # put.main()
     print("Auto calibrating...")
     with open("/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt", "r") as id_file:
         for line in id_file:

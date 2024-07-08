@@ -8,5 +8,6 @@ def transform_and_overwrite(input_file):
     with open(input_file, 'w') as f:
         f.write('\n'.join(pairs) + '\n')
 
-input_file = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
-transform_and_overwrite(input_file)
+if __name__ == "__main__":
+    input_file = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
+    transform_and_overwrite(input_file)

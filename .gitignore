@@ -6,3 +6,6 @@ numpy_files/
 trml_matrix_scaled.jpg
 mag_test_images/
 mag_test_imgs/
+IDs_to_change_SNs.txt
+SNs_to_get.txt
+SNs_with_IDs.txt

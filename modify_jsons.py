@@ -23,7 +23,7 @@ def main(s3c=None, bkn=None):
                 json_response = s3client.get_object(Bucket=_bucket_name, Key=f'{device_id}/data.json')
                 json_file_content = json_response['Body'].read().decode('utf-8')  # downloading the json
                 data_content = json.loads(json_file_content)
-                key = 'device_id'
+                key = 'serial_number'
                 print(f"{device_id}'s current value for {key} is {data_content[key]}")
                 new_value = input("New value, or enter to keep existing:\n")
                 if new_value:

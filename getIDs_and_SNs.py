@@ -21,9 +21,9 @@ def get_matches(sn, target_idx, all_devices):
                 sns_and_ids.append("none")
 
 
-output_path = "/home/canyon/Test_Equipment/SNs_with_IDs.txt"
-input_path = "/home/canyon/Test_Equipment/SNs_to_get.txt"
-id_list_path = "/home/canyon/Test_Equipment/all_devices.csv"
+output_path = "/home/canyon/Test_Equipment/crispy-garland/SNs_with_IDs.txt"
+input_path = "/home/canyon/Test_Equipment/crispy-garland/SNs_to_get.txt"
+id_list_path = "/home/canyon/Test_Equipment/crispy-garland/all_devices.csv"
 
 sns_and_ids = []
 # can do ID->ID or SN->SN to get which of a list are in s3

@@ -145,7 +145,7 @@ class Mapper:
         # brightened_image[start_row1:end_row1, start_col1:end_col1] = brightened_corner1  # tl
         # brightened_image[start_row2:end_row2, start_col2:end_col2] = brightened_corner2  # tr?
         # brightened_image[start_row3:end_row3, start_col3:end_col3] = brightened_corner3  # bl?
-        # brightened_image[start_row4:end_row4, start_col4:end_col4] = brightened_corner4  # br
+        brightened_image[start_row4:end_row4, start_col4:end_col4] = brightened_corner4  # br
 
 ###### 23/41 with (1/41 too bright), 11/41 w/o
         return brightened_image
@@ -311,8 +311,8 @@ class Mapper:
             thermal_image, thermal_coordinates, rgb_image, rgb_coordinates, mask_matrix)
 
         if debug_mode and calibration_success:
-            self.see_image(debug_image, device_id)
-            calibration_success = input("Ok?").lower()[0] == 'y'
+            # self.see_image(debug_image, device_id)
+            # calibration_success = input("Ok?").lower()[0] == 'y'
             if calibration_success:
                 write_image_to_s3(f"{device_id}/debug_image.png", debug_image)
                 update_data_json_on_s3(device_id, [("auto_cal", calibration_success)])

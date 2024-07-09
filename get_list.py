@@ -17,6 +17,8 @@ def filter_by_date(device_list, months=(1, 12), days=(1, 31)):
     filtered_devices = []
     for m in month_range:
         for d in day_range:
+            if (d == 31 and m in (4, 6, 9, 11)) or (d == 30 and m == 2):
+                break
             key = f"{str(m):0>2}/{str(d):0>2}"
             devices_per_day[key] = 0
     for d in device_list:

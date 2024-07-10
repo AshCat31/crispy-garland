@@ -100,7 +100,6 @@ def main():
     # axs[1].set_xlabel('Y Differences')
     # axs[2].axis('off')
     axs.axis('off')
-    print(min(y_diffs), max(y_diffs), min(x_diffs), max(x_diffs))
     plt.tight_layout()
     plt.show()
 

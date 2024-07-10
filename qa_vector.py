@@ -8,6 +8,8 @@ import numpy as np
 from matplotlib import patches
 from matplotlib.cm import ScalarMappable
 
+from s3_setup import setup_s3
+
 
 def vector_plot(magnitude, angle_degrees, color='black', zorder=10):
     angle_radians = np.deg2rad(-angle_degrees + 270)
@@ -79,19 +81,12 @@ doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
 with open(doc_path, 'r') as file:
     for line in file:
         device_list.append(line.split()[0])
-        c2.append(float(line.split()[1]))
-
-cred = boto3.Session().get_credentials()
-ACCESS_KEY = cred.access_key
-SECRET_KEY = cred.secret_key
-SESSION_TOKEN = cred.token
+        if len(line.split())>1:
+            c2.append(float(line.split()[1]))
+        else: 
+            raise ValueError("ROI failures not in file")
 global s3client
-s3client = boto3.client('s3',
-                        aws_access_key_id=ACCESS_KEY,
-                        aws_secret_access_key=SECRET_KEY,
-                        aws_session_token=SESSION_TOKEN,
-                        )
-bucket_name = 'kcam-calibration-data'
+s3client, bucket_name = setup_s3()
 
 # Example usage:
 fig, ax = plt.subplots(1, 1)
@@ -187,7 +182,6 @@ colors = ['orange', 'yellow', 'green', 'cyan', 'indigo', 'magenta', 'brown']
 cidx = 0
 for dev_id in device_list:
     label = dev_id
-    # print(dev_id)
     try:
         vector = get_vector(dev_id)
     except:

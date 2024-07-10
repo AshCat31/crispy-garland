@@ -1,27 +1,18 @@
 import json
 
-import boto3
 import numpy as np
 import pandas as pd
+from s3_setup import setup_s3
 
 
 def download_json(deviceId):
-    global s3client
-    _bucket_name = 'kcam-calibration-data'
-    json_response = s3client.get_object(Bucket=_bucket_name, Key=f'{deviceId}/data.json')
+    global s3client, bucket_name
+    json_response = s3client.get_object(Bucket=bucket_name, Key=f'{deviceId}/data.json')
     json_file_content = json_response['Body'].read().decode('utf-8')  # downloading the json
     return json.loads(json_file_content)
 
 
-cred = boto3.Session().get_credentials()
-ACCESS_KEY = cred.access_key
-SECRET_KEY = cred.secret_key
-SESSION_TOKEN = cred.token
-s3client = boto3.client('s3',
-                        aws_access_key_id=ACCESS_KEY,
-                        aws_secret_access_key=SECRET_KEY,
-                        aws_session_token=SESSION_TOKEN,
-                        )
+s3client, bucket_name = setup_s3()
 mismatched_qr_codes = []
 id_file = np.genfromtxt("unique_ids.csv", delimiter=",", skip_header=1, dtype=str)
 for i, line in enumerate(id_file):

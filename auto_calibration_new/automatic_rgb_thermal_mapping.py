@@ -311,8 +311,8 @@ class Mapper:
             thermal_image, thermal_coordinates, rgb_image, rgb_coordinates, mask_matrix)
 
         if debug_mode and calibration_success:
-            # self.see_image(debug_image, device_id)
-            # calibration_success = input("Ok?").lower()[0] == 'y'
+            self.see_image(debug_image, device_id)
+            calibration_success = input("Ok?").lower()[0] == 'y'
             if calibration_success:
                 write_image_to_s3(f"{device_id}/debug_image.png", debug_image)
                 update_data_json_on_s3(device_id, [("auto_cal", calibration_success)])

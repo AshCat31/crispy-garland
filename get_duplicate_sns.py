@@ -37,8 +37,6 @@ for sn in duplicate_sns:
             hub_ct += 1
         elif id.startswith("E66"):
             head_ct += 1
-        # else:  # includes dates if on
-        #     other_ct +=1 
     if head_ct > 1 or hub_ct > 1 or other_ct > 1:  # if more than 1 of a type
         matches_dict[sn] = matched_ids
 with open(output_path, "w") as out_file:

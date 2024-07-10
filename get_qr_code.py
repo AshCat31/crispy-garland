@@ -3,8 +3,7 @@ import os
 
 
 def download_json(deviceId):
-    output = os.system(
-        f'aws s3 cp s3://kcam-calibration-data/{deviceId}/data.json ~/S3bucket/{deviceId}/data.json --only-show-errors')
+    output = os.system(f'aws s3 cp s3://kcam-calibration-data/{deviceId}/data.json ~/S3bucket/{deviceId}/data.json --only-show-errors')
     if output != 0:
         return False
     return True

@@ -10,7 +10,7 @@ __copyright__ = """
 import io
 import statistics
 
-import boto3
+from s3_setup import setup_s3
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -22,18 +22,8 @@ def main():
         for line in file:
             values = line.split()
             device_list.append(values[0])
-
-    cred = boto3.Session().get_credentials()
-    ACCESS_KEY = cred.access_key
-    SECRET_KEY = cred.secret_key
-    SESSION_TOKEN = cred.token
     global s3client
-    s3client = boto3.client('s3',
-                            aws_access_key_id=ACCESS_KEY,
-                            aws_secret_access_key=SECRET_KEY,
-                            aws_session_token=SESSION_TOKEN,
-                            )
-    bucket_name = 'kcam-calibration-data'
+    s3client, bucket_name = setup_s3()
 
     device_type_dict = {"100": ("_mosaic",), "E66": ("_hydra",)}
     coverage_percents = []

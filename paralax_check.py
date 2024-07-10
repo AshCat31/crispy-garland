@@ -16,35 +16,21 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 
+from s3_setup import setup_s3
 
 def main():
     # Setup device list
     device_list = []
-    # doc_path = '/home/canyon/Test_Equipment/hub_alignment_test/docs2.csv'
     doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
-    # with open(doc_path) as csv_file:
-    #     reader = csv.reader(csv_file, delimiter='\t')
-    #     for row in reader:
-    #         device_list.append(row[0])
     with open(doc_path, 'r') as file:  # allow not just tabs as delimiters
         for line in file:
             values = line.split()
             device_list.append(values[0])
 
     # Setup boto3
-    cred = boto3.Session().get_credentials()
-    ACCESS_KEY = cred.access_key
-    SECRET_KEY = cred.secret_key
-    SESSION_TOKEN = cred.token
+    
+    s3client, _bucket_name = setup_s3()
 
-    s3client = boto3.client('s3',
-                            aws_access_key_id=ACCESS_KEY,
-                            aws_secret_access_key=SECRET_KEY,
-                            aws_session_token=SESSION_TOKEN,
-                            )
-    _bucket_name = 'kcam-calibration-data'
-
-    _device_type = 'hydra'
     hub_base_image = ['/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_one.jpeg',
                       '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_two.jpeg',
                       '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_three.jpeg',
@@ -80,7 +66,6 @@ def main():
     ]
 
     for _device_id in device_list:
-        # Get cal files
         parallax_check(_device_id, s3client, _bucket_name, hub_base_image, head_base_image)
 
 
@@ -122,8 +107,6 @@ def parallax_check(_device_id, s3client, _bucket_name, hub_base_image, head_base
     mask_edges_contours, _ = cv2.findContours(mask_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     fig, axs = plt.subplots(x, y)
-    # print(axs.shape)
-    # print(axs)
     fig.suptitle(_device_id)
     for val in range(len(_base_image)):
         rgb_img = mpimg.imread(_base_image[val])
@@ -133,7 +116,6 @@ def parallax_check(_device_id, s3client, _bucket_name, hub_base_image, head_base
 
         cv2.drawContours(rgb_img, mask_edges_contours, -1, (255, 255, 255), 1)
         row, col = divmod(val, max(x, y))
-        # print(col,row)
         axs[row][col].imshow(rgb_img, cmap='gray')
         axs[row][col].axis('off')
     plt.subplots_adjust(wspace=0, hspace=0.01, bottom=0, top=.95)

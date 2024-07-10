@@ -1,7 +1,6 @@
 import os
 import statistics
 
-import boto3
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
@@ -68,7 +67,7 @@ def get_vector(device_id):
     dX = rgb_cen[0] - therm_cen[0]
     dY = rgb_cen[1] - therm_cen[1]
     dif_mag = np.sqrt(dX ** 2 + dY ** 2)
-    angle_rad = np.arctan2(dY, dX)  # atan2(dY, dX) gives the angle in the standard coordinate system
+    angle_rad = np.arctan2(dY, dX)
     angle_deg = np.degrees(angle_rad)
     return dif_mag, angle_deg
 
@@ -88,7 +87,6 @@ with open(doc_path, 'r') as file:
 global s3client
 s3client, bucket_name = setup_s3()
 
-# Example usage:
 fig, ax = plt.subplots(1, 1)
 vectors = np.genfromtxt("Test_vec_integrated.csv", delimiter=",", skip_header=1, dtype='<U25')
 label = ''
@@ -100,13 +98,11 @@ new_xs = []
 new_ys = []
 
 for mag, ang, id, is_rma, bad_rois in vectors:
-    # print(mag, ang, id, is_rma)
     if is_rma == 'True':
         vector_plot(float(mag), float(ang), 'red', 9999)
     else:
         vector_plot(float(mag), float(ang))
 c = np.asarray([int(i) for i in vectors[:, 4]])
-# print(min(c),max(c))
 # for i in range(len(xs)):
 #     ax.scatter(xs[i], ys[i], s=90, c=c[i], cmap=cmap, norm=norm, zorder=-c[i])
 ax.set_aspect('equal')
@@ -123,15 +119,12 @@ two_thirds = 2 * third
 # Partition data
 xs_lowest_third = sorted_xs[:third]
 ys_lowest_third = sorted_ys[:third]
-
 xs_lowest_two_thirds = sorted_xs[:two_thirds]
 ys_lowest_two_thirds = sorted_ys[:two_thirds]
-
 xs_all = sorted_xs
 ys_all = sorted_ys
 
 
-# Fit ellipses
 def fit_ellipse(xs, ys, ax, color, label, scale):
     mean_x = np.mean(xs)
     mean_y = np.mean(ys)
@@ -144,39 +137,15 @@ def fit_ellipse(xs, ys, ax, color, label, scale):
     ax.add_patch(ellipse)
 
 
-# Plotting
-# fig, ax = plt.subplots()
-
-# # Plot points
-# ax.scatter(xs_all, ys_all, c=c, cmap='viridis', label='All Points')
-
-# Fit ellipses for each group
 fit_ellipse(xs_lowest_third, ys_lowest_third, ax, 'green', 'Lowest 1/3', 1)
 fit_ellipse(xs_lowest_two_thirds, ys_lowest_two_thirds, ax, 'green', 'Lowest 2/3', 2)
 fit_ellipse(xs_all, ys_all, ax, 'green', 'All Points', 3)
 
-# cx, cy = int(statistics.mean(xs)),  int(statistics.mean(ys))
-# radius = 12
-# circle = patches.Circle((cx, cy), radius, edgecolor='green', facecolor='none', linewidth=2, zorder=99999)
-# ax.add_patch(circle)
-
-# for i in range(len(xs)):
-#     x = xs[i]
-#     y = ys[i]
-#     distance = np.sqrt((x - cx) ** 2 + (y - cy) ** 2)
-#     if distance > radius:
-#         integ_outside +=1
-
-# print((max(c2)))
 norm = mcolors.Normalize(vmin=1, vmax=max(c2))
-cmap = plt.cm.get_cmap('inferno')
+cmap = plt.colormaps['inferno']
 sm = ScalarMappable(cmap=cmap, norm=norm)
-# ticks = [10**i for i in range(int(np.floor(np.log10(0))), int(np.ceil(np.log10(len(new_xs)))) + 1)]
 sm.set_array([])
 cbar = plt.colorbar(sm, ax=ax, label='Values')
-# #Show ticks at powers of 10
-# cbar.set_ticks(ticks)
-# cbar.set_ticklabels(ticks)
 
 colors = ['orange', 'yellow', 'green', 'cyan', 'indigo', 'magenta', 'brown']
 cidx = 0
@@ -187,21 +156,10 @@ for dev_id in device_list:
     except:
         continue
     if vector:
-        # vector_plot(*vector, colors[cidx%len(colors)], 999)
         vector_plot(*vector, 'yellow', 9999)
         cidx += 1
 for i in range(len(new_xs)):
     ax.scatter(new_xs[i], new_ys[i], s=90, c=c2[i], cmap=cmap, norm=norm, zorder=-c2[i])
-
-# for i in range(len(new_xs)):
-#     x = new_xs[i]
-#     y = new_ys[i]
-#     distance = np.sqrt((x - cx) ** 2 + (y - cy) ** 2)
-#     if distance > radius:
-#         new_outside +=1
-
-# print("Integ outside", integ_outside/len(xs))
-# print("New outside", new_outside/len(new_xs))
 
 ax.set_aspect('equal')
 # Set the limits of the plot to be slightly larger than the vector

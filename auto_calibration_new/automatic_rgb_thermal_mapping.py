@@ -239,8 +239,8 @@ class Mapper:
         rgb_coordinates, _, _ = auto_point_detection.find_calibration_points_on_rgb_photo(
             gray_rgb_image)
 
-        logging.info(
-            f"Calibrating device {device_id}, type {device_type}, IDX {device_idx}")
+        # logging.info(
+        #     f"Calibrating device {device_id}, type {device_type}, IDX {device_idx}")
         # print((thermal_image.))
         # return False
         if self.validate_calibration_points(rgb_coordinates) and (overwrite or not os.path.isfile(rgb_coordinates_file_path)):
@@ -253,8 +253,8 @@ class Mapper:
             if calibration_success:
                 write_numpy_to_s3(
                     f"{device_id}/rgb_{device_id}_9element_coord.npy", rgb_coordinates)
-            else:
-                return calibration_success
+            # else:  # enable to not do both if one's bad
+            #     return calibration_success
         # if True:
         if self.validate_calibration_points(thermal_coordinates) and (overwrite or not os.path.isfile(trml_coordinates_file_path)):
             debug_thermal_image = thermal_image.copy()
@@ -311,8 +311,8 @@ class Mapper:
             thermal_image, thermal_coordinates, rgb_image, rgb_coordinates, mask_matrix)
 
         if debug_mode and calibration_success:
-            self.see_image(debug_image, device_id)
-            calibration_success = input("Ok?").lower()[0] == 'y'
+            # self.see_image(debug_image, device_id)  # not needed with other checks
+            # calibration_success = input("Ok?").lower()[0] == 'y'
             if calibration_success:
                 write_image_to_s3(f"{device_id}/debug_image.png", debug_image)
                 update_data_json_on_s3(device_id, [("auto_cal", calibration_success)])

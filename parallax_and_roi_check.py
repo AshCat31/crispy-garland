@@ -82,7 +82,7 @@ def main():
          '/home/canyon/Test_Equipment/head_alignment_test/port3_five.jpeg',
          '/home/canyon/Test_Equipment/head_alignment_test/port3_six.jpeg', ]
     ]
-    head_rois = [  # automatic, #29
+    head_rois = [
         ['/home/canyon/Test_Equipment/head_alignment_test/auto_port0_one.npy',
          '/home/canyon/Test_Equipment/head_alignment_test/auto_port0_two.npy',
          '/home/canyon/Test_Equipment/head_alignment_test/auto_port0_three.npy',
@@ -108,40 +108,6 @@ def main():
          '/home/canyon/Test_Equipment/head_alignment_test/auto_port3_five.npy',
          ],
     ]
-    # head_rois = [
-    #     ['/home/canyon/Test_Equipment/head_alignment_test/port0_one.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port0_two.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port0_three.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port0_four.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port0_five.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port0_six.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port0_seven.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port0_eight.npy',],
-    #     ['/home/canyon/Test_Equipment/head_alignment_test/port1_one.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port1_two.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port1_three.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port1_four.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port1_five.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port1_six.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port1_seven.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port1_eight.npy',],
-    #     ['/home/canyon/Test_Equipment/head_alignment_test/port2_one.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port2_two.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port2_three.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port2_four.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port2_five.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port2_six.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port2_seven.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port2_eight.npy',],
-    #     ['/home/canyon/Test_Equipment/head_alignment_test/port3_one.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port3_two.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port3_three.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port3_four.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port3_five.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port3_six.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port3_seven.npy',
-    #     '/home/canyon/Test_Equipment/head_alignment_test/port3_eight.npy'],
-    # ]
     show_plot = False
     device_type_dict = {"100": ("_mosaic", hub_base_image, hub_rois), "E66": ("_hydra", head_base_image, head_rois)}
     xy_adjustments = []

@@ -38,7 +38,7 @@ def process_images_from_file(ids_file):
     """
     with open(ids_file, 'r') as f:
         for line in f:
-            id = line.strip()
+            id = line.split()[0]
 
             input_image_path = f"/home/canyon/S3bucket/{id}/6_inch.png"
             output_image_path = f"/home/canyon/S3bucket/{id}/6_inch.png"

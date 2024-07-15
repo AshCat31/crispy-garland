@@ -137,11 +137,10 @@ def main():
                         _json = False
                         serial_number_check = False  # if the json was not complete odds are the SN check if false
                         # the user should review the data.json for a incomplete error anyway though
-
                 else:
                     logger.error(" data.json does not extist in S3")
                     _json = False
-                # Remander of the path definitions, needed here as device type and folder id will not be correctly defined for hub devices
+                # Remainder of the path definitions, needed here as device type and folder id will not be correctly defined for hub devices
                 nine_points_rgb_path = f'{device_id}/rgb_{folder_id}_9element_coord.npy'
                 nine_points_trml_path = f'{device_id}/trml_{folder_id}_9element_coord.npy'
                 # Defs for calculated transforms Paths in S3

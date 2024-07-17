@@ -336,7 +336,7 @@ if __name__ == "__main__":
         for line in reader.split("\n"):
             deviceList.append(line.split())
         for row in deviceList:
-            print(row)
+            print(f'---{"---".join(row)}----')
             success = mp.do_automatic_rgb_calibration_mapping(row[0])
             print(success)
         print(mp.errors)

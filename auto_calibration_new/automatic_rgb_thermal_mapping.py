@@ -106,9 +106,9 @@ class Mapper:
         start_col3 = 0
         end_col3 = width // 3
 
-        start_row4 = 3 * height // 4
+        start_row4 = 4 * height // 5  # GO BACK TO QUARTER
         end_row4 = height
-        start_col4 = 3 * width // 4
+        start_col4 = 4 * width // 5
         end_col4 = width
 
         # Extract corners
@@ -239,10 +239,6 @@ class Mapper:
         rgb_coordinates, _, _ = auto_point_detection.find_calibration_points_on_rgb_photo(
             gray_rgb_image)
 
-        # logging.info(
-        #     f"Calibrating device {device_id}, type {device_type}, IDX {device_idx}")
-        # print((thermal_image.))
-        # return False
         if self.validate_calibration_points(rgb_coordinates) and (overwrite or not os.path.isfile(rgb_coordinates_file_path)):
         # if False:
             debug_rgb_image = rgb_image.copy()
@@ -285,8 +281,6 @@ class Mapper:
             thermal_coordinates)
         rgb_coordinates = convert_coordinates_to_numpy_array(rgb_coordinates)
         parallax_calibrator = ParalaxCalibrator()
-        # print(thermal_coordinates.shape,
-        #     rgb_coordinates.shape)
         mask_matrix, coordinate_map, sensitivity_matrix = parallax_calibrator(
             thermal_image,
             rgb_image,
@@ -295,6 +289,7 @@ class Mapper:
         )
         if self.validate_mask_matrix(mask_matrix):
             directory = f"{device_id}/calculated_transformations/{device_id}"
+            calibration_success = True
             if not debug_mode:
                 write_numpy_to_s3(
                     f"{directory}/mapped_coordinates_matrix_{device_type}_{device_idx}.npy", coordinate_map)
@@ -306,27 +301,22 @@ class Mapper:
                     f"{device_id}/trml_{device_idx}_9element_coord.npy", thermal_coordinates)
                 write_numpy_to_s3(
                     f"{device_id}/rgb_{device_idx}_9element_coord.npy", rgb_coordinates)
-            calibration_success = True
         debug_image = generate_debug_image(
             thermal_image, thermal_coordinates, rgb_image, rgb_coordinates, mask_matrix)
 
         if debug_mode and calibration_success:
-            # self.see_image(debug_image, device_id)  # not needed with other checks
-            # calibration_success = input("Ok?").lower()[0] == 'y'
-            if calibration_success:
-                write_image_to_s3(f"{device_id}/debug_image.png", debug_image)
-                update_data_json_on_s3(device_id, [("auto_cal", calibration_success)])
-                write_numpy_to_s3(
-                    f"{directory}/mapped_coordinates_matrix_{device_type}_{device_idx}.npy", coordinate_map)
-                write_numpy_to_s3(
-                    f"{directory}/mapped_mask_matrix_{device_type}_{device_idx}.npy", mask_matrix)
-                write_numpy_to_s3(
-                    f"{directory}/sensitivity_correction_matrix_{device_type}_{device_idx}.npy", sensitivity_matrix)
-                write_numpy_to_s3(
-                    f"{device_id}/trml_{device_idx}_9element_coord.npy", thermal_coordinates)
-                write_numpy_to_s3(
-                    f"{device_id}/rgb_{device_idx}_9element_coord.npy", rgb_coordinates)
-                pass
+            write_image_to_s3(f"{device_id}/debug_image.png", debug_image)
+            update_data_json_on_s3(device_id, [("auto_cal", calibration_success)])
+            write_numpy_to_s3(
+                f"{directory}/mapped_coordinates_matrix_{device_type}_{device_idx}.npy", coordinate_map)
+            write_numpy_to_s3(
+                f"{directory}/mapped_mask_matrix_{device_type}_{device_idx}.npy", mask_matrix)
+            write_numpy_to_s3(
+                f"{directory}/sensitivity_correction_matrix_{device_type}_{device_idx}.npy", sensitivity_matrix)
+            write_numpy_to_s3(
+                f"{device_id}/trml_{device_idx}_9element_coord.npy", thermal_coordinates)
+            write_numpy_to_s3(
+                f"{device_id}/rgb_{device_idx}_9element_coord.npy", rgb_coordinates)
         else:
             write_image_to_s3(f"{device_id}/debug_image.png", debug_image)
             update_data_json_on_s3(device_id, [("auto_cal", calibration_success)])

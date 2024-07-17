@@ -26,9 +26,9 @@ def filter_by_date(device_list, months=(1, 12), days=(1, 31)):
         if date.month in month_range and date.day in day_range:
             filtered_devices.append(d)
             key = f"{str(date.month):0>2}/{str(date.day):0>2}"
-            try:
+            if key in devices_per_day.keys():
                 devices_per_day[key] += 1
-            except KeyError:
+            else:
                 devices_per_day[key] = 1
     return filtered_devices, devices_per_day
 
@@ -48,9 +48,7 @@ def get_devices():
     df_out.to_csv(fn_out)
     return output
 
-
-def main():
-    devices = get_devices()
+def filter_devices(devices):
     unique_devices = [d for d in devices if d['Key'][-10:] == '6_inch.png' and d["LastModified"].date().year == 2024]
     filtered_devices = []
     devices_per_day = {}
@@ -75,6 +73,9 @@ def main():
         print("Total devices:", len(filtered_devices))
         filtered_devices = []
 
+def main():
+    devices = get_devices()
+    filter_devices(devices)
 
 if __name__ == "__main__":
     main()

@@ -1,8 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+# heads
 labels = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
 sizes = [110,35,39,26,30,45,79,32,40,10,8,13,5,2,2,3,0,2,0,0,1,2,0,1]
+# hubs
+# labels = [0,1,2,3,4,5,6,7,8,9,10,11,12]
+# sizes = [6,4,0,6,38,14,23,34,15,18,25,8,6]
 fig, ax = plt.subplots(figsize=(8, 8))
 wedges, texts = ax.pie(sizes, labels=labels, startangle=90, counterclock=False)
 

@@ -15,19 +15,14 @@ def process_image(input_image_path, output_image_path, red_threshold=235):
     img = Image.open(input_image_path)
     img = img.convert('RGB')
     width, height = img.size
-    output_img = Image.new('RGB', (width, height))
 
-    # Process each pixel
     for x in range(width):
         for y in range(height):
             r, g, b = img.getpixel((x, y))
             if r > red_threshold:
-                output_img.putpixel((x, y), (255, 255, 255))
-            else:
-                output_img.putpixel((x, y), (r, g, b))
+                img.putpixel((x, y), (255, 255, 255))
 
-    output_img.save(output_image_path)
-
+    img.save(output_image_path)
 
 def process_images_from_file(ids_file):
     """
@@ -46,9 +41,7 @@ def process_images_from_file(ids_file):
 
             # Save original as red_6_inch.png
             os.rename(input_image_path, red_output_image_path)
-
-            # Process the image
-            process_image(red_output_image_path, output_image_path)
+            process_image(red_output_image_path, output_image_path)  # must pass red path bcuz input was moved
 
 
 ids_file = 'QA_ids.txt'

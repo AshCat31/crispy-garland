@@ -74,8 +74,7 @@ def filter_devices(devices):
         filtered_devices = []
 
 def main():
-    devices = get_devices()
-    filter_devices(devices)
+    filter_devices(get_devices())
 
 if __name__ == "__main__":
     main()

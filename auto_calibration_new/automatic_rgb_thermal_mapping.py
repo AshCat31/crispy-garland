@@ -3,6 +3,7 @@ import logging
 import os
 
 import cv2
+import matplotlib.pyplot as plt
 
 from paralax_calibrator import ParalaxCalibrator
 
@@ -10,6 +11,7 @@ from automatic_point_detection import auto_point_detection
 from rgb_thermal_mapping_utils import generate_debug_image
 
 from s3_utils import *
+from s3_setup import setup_s3
 
 
 class Mapper:
@@ -25,36 +27,28 @@ class Mapper:
         self.errors = []
 
         # Setup boto3
-        cred = boto3.Session().get_credentials()
-        ACCESS_KEY = cred.access_key
-        SECRET_KEY = cred.secret_key
-        SESSION_TOKEN = cred.token
+        s3client, bucket_name = setup_s3()
 
-        if s3client is None:
-            self.s3client = boto3.client('s3',
-                                aws_access_key_id=ACCESS_KEY,
-                                aws_secret_access_key=SECRET_KEY,
-                                aws_session_token=SESSION_TOKEN,
-                                )
-            self.BUCKET_NAME = 'kcam-calibration-data'
-        else:
-            self.s3client = s3client
-            self.BUCKET_NAME = bucket_name
-
+    def on_key_press(self, event):
+        """Handles manual review's image interaction"""
+        self.review_input = event.key.upper() == 'Y'
+        plt.close()
 
     def see_image(self, image: cv2.Mat, device_id: str):
         """Debug function to display image"""
-        window_name = f"{device_id}"
-        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(window_name, 960, 640)
-        cv2.moveWindow(window_name, 0, 0)
-        cv2.imshow(window_name, image)
-        # cv2.waitKey(20000)
-        # cv2.destroyAllWindows()
-        while cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) > 0:
-            if cv2.waitKey(100) > 0:
-                break
-
+        screen_width, screen_height = 800, 1000
+        fig = plt.figure(figsize=(screen_width / 100, screen_height / 100), dpi=100)
+        ax = fig.add_subplot(111)
+        ax.set_title(f'Y for passing {device_id}')
+        manager = fig.canvas.manager
+        if manager is not None:
+            try:
+                manager.window.wm_geometry(f"+{1100}+{0}")
+            except Exception as e:
+                print(f"Error setting window position: {e}")
+        ax.imshow(image)
+        fig.canvas.mpl_connect('key_press_event', self.on_key_press)
+        plt.show()
 
     def validate_calibration_points(self, calibration_points: str):
         """Check if number of calibration points is correct"""
@@ -245,7 +239,8 @@ class Mapper:
             for x, y in rgb_coordinates:
                 cv2.circle(debug_rgb_image, (int(x), int(y)), 0, (0, 0, 255), 10)
             self.see_image(debug_rgb_image, device_id)
-            calibration_success = input("rgb Ok?").lower()[0] == 'y'
+            calibration_success = self.review_input
+            # calibration_success = input("rgb Ok?").lower()[0] == 'y'
             if calibration_success:
                 write_numpy_to_s3(
                     f"{device_id}/rgb_{device_id}_9element_coord.npy", rgb_coordinates)
@@ -266,7 +261,8 @@ class Mapper:
                 (debug_thermal_image), axis=1)
             self.see_image(debug_thermal_image, device_id)
             # return False
-            calibration_success = input("trml Ok?").lower()[0] == 'y'
+            calibration_success = self.review_input
+            # calibration_success = input("trml Ok?").lower()[0] == 'y'
             if calibration_success:
                 write_numpy_to_s3(
                     f"{device_id}/trml_{device_id}_9element_coord.npy", thermal_coordinates)

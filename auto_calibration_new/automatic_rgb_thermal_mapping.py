@@ -217,7 +217,7 @@ class Mapper:
         adjusted_image = np.clip(adjusted_image, 0, 255).astype(np.uint8)
         return adjusted_image
 
-    def do_automatic_rgb_calibration_mapping(self, device_id, debug_mode=True, overwrite=False):
+    def do_automatic_rgb_calibration_mapping(self, device_id, debug_mode=True, overwrite=True):
         """Do automatic calibration mapping and send results to s3"""
         basePath = os.path.join("/home/canyon/S3bucket/", device_id)
         folder_path = basePath

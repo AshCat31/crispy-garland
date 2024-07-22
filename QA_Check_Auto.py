@@ -14,6 +14,8 @@ import numpy as np
 
 from s3_setup import setup_s3
 
+import snoop
+
 
 def configure_logger():
     logger = logging.getLogger(__name__)
@@ -27,7 +29,7 @@ def configure_logger():
 class JSONChecker:
     def __init__(self, values, s3client, bucket_name, logger) -> None:
         self.logger = logger
-        self.s3client = s3client
+        self._s3client = s3client
         self.bucket_name = bucket_name
         self.device_id = values[0]
         self.serial_number = self.get_serial_number(values)
@@ -53,11 +55,9 @@ class JSONChecker:
             self.logger.warning("SN not found.")
             return "none"
 
-    def check_json(self):
+    def qa_device(self):
         if self.check_path(f'{self.device_id}/'):
             self.validate_json()
-            # needed here or inner dir will be wrong for hubs
-
             self.exists_6in_png = self.log_exists(self.six_inch_png_path, "6inch.png")
             self.exists_6in_npy = self.log_exists(self.six_inch_npy_path, "6inch.npy")
             self.exists_9ele_rgb = self.log_exists(f'{self.device_id}/rgb_{self.inner_dir}_9element_coord.npy')
@@ -96,10 +96,10 @@ class JSONChecker:
             self.logger.error("data.json does not exist in S3")
 
     def _get_s3_objects(self, Prefix):
-        return self.s3client.list_objects_v2(Bucket=self.bucket_name,Prefix=Prefix)
+        return self._s3client.list_objects_v2(Bucket=self.bucket_name,Prefix=Prefix)
 
     def _get_s3_object(self, Key):
-        return self.s3client.get_object(Bucket=self.bucket_name,Key=Key)
+        return self._s3client.get_object(Bucket=self.bucket_name,Key=Key)
 
     def check_path(self, file_path):
         """Check if a file exists in S3"""
@@ -146,19 +146,16 @@ class JSONChecker:
             return None
 
     def load_array_from_s3(self, key):
-        """Downloads a single array file from S3 and loads it into a NumPy array."""
+        """Downloads a .npy file from S3 and loads it into a NumPy array."""
         raw_bytes = self.load_file_from_s3(key)
-        if raw_bytes is not None:
-            array = np.load(raw_bytes)
-            return array
-        return None
+        return np.load(raw_bytes) if raw_bytes else None
         
     def load_rgb_image_from_s3(self, key: str):
         """Download rgb image from s3"""
         raw_bytes = self.load_file_from_s3(key)
         if raw_bytes is not None:
             raw_image_bytes = np.frombuffer(raw_bytes.read(), dtype=np.uint8)
-            rgb_image = cv2.imdecode(raw_image_bytes, cv2.IMREAD_COLOR)
+            rgb_image = cv2.imdecode(raw_image_bytes.astype(np.uint8), cv2.IMREAD_COLOR)
             if np.max(rgb_image) <= 1:
                 rgb_image = (rgb_image * 255).astype(np.uint8)
             return rgb_image
@@ -302,7 +299,7 @@ class JSONChecker:
             "ROI Review Status": self.man_rev_status
         }
         json_data = json.dumps(QA_Check, indent=4)
-        self.s3client.put_object(Bucket=self.bucket_name, Key=json_key, Body=BytesIO(json_data.encode('utf-8')))
+        self._s3client.put_object(Bucket=self.bucket_name, Key=json_key, Body=BytesIO(json_data.encode('utf-8')))
         self.logger.info("json file written to S3")
 
 def main():
@@ -313,7 +310,7 @@ def main():
     for line in lines:
         values = line.split()
         jc = JSONChecker(values, s3client, bucket_name, logger)
-        jc.check_json()
+        jc.qa_device()
 
 if __name__ == "__main__":
     main()

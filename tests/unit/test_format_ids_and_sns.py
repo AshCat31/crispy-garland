@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, mock_open
 from format_ids_and_sns import overwrite, transform
 
-"PYTHONPATH=/home/canyon/Test_Equipment/crispy-garland /bin/python3 /home/canyon/Test_Equipment/crispy-garland/tests/unit/test_format_ids_and_sns "
+"PYTHONPATH=~/Test_Equipment/crispy-garland /bin/python3 ~/Test_Equipment/crispy-garland/tests/unit/test_format_ids_and_sns.py"
 
 class TestOverwrite(unittest.TestCase):
     @patch('builtins.open', new_callable=mock_open, read_data="1\n2\n3\n4\n5\n6\n")

@@ -11,7 +11,6 @@ from automatic_point_detection import auto_point_detection
 from rgb_thermal_mapping_utils import generate_debug_image
 
 from s3_utils import *
-from s3_setup import setup_s3
 
 
 class Mapper:
@@ -27,7 +26,21 @@ class Mapper:
         self.errors = []
 
         # Setup boto3
-        s3client, bucket_name = setup_s3()
+        cred = boto3.Session().get_credentials()
+        ACCESS_KEY = cred.access_key
+        SECRET_KEY = cred.secret_key
+        SESSION_TOKEN = cred.token
+
+        if s3client is None:
+            self.s3client = boto3.client('s3',
+                                aws_access_key_id=ACCESS_KEY,
+                                aws_secret_access_key=SECRET_KEY,
+                                aws_session_token=SESSION_TOKEN,
+                                )
+            self.BUCKET_NAME = 'kcam-calibration-data'
+        else:
+            self.s3client = s3client
+            self.BUCKET_NAME = bucket_name
 
     def on_key_press(self, event):
         """Handles manual review's image interaction"""
@@ -46,7 +59,7 @@ class Mapper:
                 manager.window.wm_geometry(f"+{1100}+{0}")
             except Exception as e:
                 print(f"Error setting window position: {e}")
-        ax.imshow(image)
+        ax.imshow(image, cmap='grey')
         fig.canvas.mpl_connect('key_press_event', self.on_key_press)
         plt.show()
 
@@ -234,19 +247,16 @@ class Mapper:
             gray_rgb_image)
 
         if self.validate_calibration_points(rgb_coordinates) and (overwrite or not os.path.isfile(rgb_coordinates_file_path)):
-        # if False:
             debug_rgb_image = rgb_image.copy()
             for x, y in rgb_coordinates:
-                cv2.circle(debug_rgb_image, (int(x), int(y)), 0, (0, 0, 255), 10)
+                cv2.circle(debug_rgb_image, (int(x), int(y)), 0, (255, 0, 0), 10)
             self.see_image(debug_rgb_image, device_id)
             calibration_success = self.review_input
-            # calibration_success = input("rgb Ok?").lower()[0] == 'y'
             if calibration_success:
                 write_numpy_to_s3(
                     f"{device_id}/rgb_{device_id}_9element_coord.npy", rgb_coordinates)
             # else:  # enable to not do both if one's bad
             #     return calibration_success
-        # if True:
         if self.validate_calibration_points(thermal_coordinates) and (overwrite or not os.path.isfile(trml_coordinates_file_path)):
             debug_thermal_image = thermal_image.copy()
         
@@ -255,14 +265,12 @@ class Mapper:
                     debug_thermal_image, cv2.COLOR_GRAY2RGB)
         
             for x, y in thermal_coordinates:
-                cv2.circle(debug_thermal_image, (int(x), int(y)), 0, (0, 0, 255), 10)
+                cv2.circle(debug_thermal_image, (int(x), int(y)), 0, (255, 0, 0), 10)
         
             debug_image = np.concatenate(
                 (debug_thermal_image), axis=1)
             self.see_image(debug_thermal_image, device_id)
-            # return False
             calibration_success = self.review_input
-            # calibration_success = input("trml Ok?").lower()[0] == 'y'
             if calibration_success:
                 write_numpy_to_s3(
                     f"{device_id}/trml_{device_id}_9element_coord.npy", thermal_coordinates)

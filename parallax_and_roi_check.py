@@ -108,7 +108,7 @@ def main():
          '/home/canyon/Test_Equipment/head_alignment_test/auto_port3_five.npy',
          ],
     ]
-    show_plot = False
+    show_plot = True
     device_type_dict = {"100": ("_mosaic", hub_base_image, hub_rois), "E66": ("_hydra", head_base_image, head_rois)}
     xy_adjustments = []
     failures = []
@@ -130,9 +130,10 @@ def main():
                 axs[port].clear()  # Clear previous plot  
     if len(failures) > 0:
         print("Avg failures:", statistics.mean(failures))
-        counts, edges, bars = plt.hist(failures, bins=15, edgecolor='black')
-        plt.bar_label(bars)
-        plt.show()
+        if show_plot:
+            counts, edges, bars = plt.hist(failures, bins=15, edgecolor='black')
+            plt.bar_label(bars)
+            plt.show()
     # print("mean x:", statistics.mean(np.asarray(xy_adjustments)[:, 0]),"mean y:", statistics.mean(np.asarray(xy_adjustments)[:, 1]))
     # print("SD x:", statistics.stdev(np.asarray(xy_adjustments)[:, 0]),"SD y:", statistics.stdev(np.asarray(xy_adjustments)[:, 1]))
 
@@ -184,16 +185,14 @@ def roi_pass(roi):
     global x_trans, y_trans
     width = 440
     height = 520
-    is_passing = True
     if device_type == '_hydra':
         roi_x, roi_y = width + x_trans - roi[:, :, 0], height - y_trans - roi[:, :, 1]
     else:
-        # roi_x, roi_y = roi[:,:,0],  roi[:,:,1]
         roi_x, roi_y = width + x_trans - roi[:, :, 0], height - y_trans - roi[:, :, 1]
     masked_roi_check = mask_map[np.uint16(roi_y), np.uint16(roi_x)]
     if np.count_nonzero(masked_roi_check) < 50:
-        is_passing = False
-    return is_passing
+        return False
+    return True
 
 
 def update_plot():

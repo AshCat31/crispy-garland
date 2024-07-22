@@ -18,331 +18,302 @@ from s3_setup import setup_s3
 def configure_logger():
     logger = logging.getLogger(__name__)
     log_format = '%(levelname)-6s: %(message)s'
+    logging.basicConfig(format=log_format)
     logging.addLevelName(logging.WARNING, "\033[1;31m%s\033[1;0m" % logging.getLevelName(logging.WARNING))
     logging.addLevelName(logging.ERROR, "\033[1;41m%s\033[1;0m" % logging.getLevelName(logging.ERROR))
-    logging.basicConfig(level=logging.WARN, format=log_format)
     return logger
 
-def check_exists(path, file_name=''):
-    exists = check_path(path)
-    if not exists and file_name:
-        logger.error(" " + path + " does not exist in S3")
-    return exists
 
-def load_array_from_s3(bucket_name, key):
-    """
-    Downloads a single array file from S3 and loads it into a NumPy array.
-
-    Args:
-    - bucket_name (str): Name of the S3 bucket.
-    - key (str): Key of the object in the S3 bucket.
-
-    Returns:
-    - numpy.ndarray: Loaded array from the downloaded file.
-    """
-    try:
-        raw_response = s3client.get_object(Bucket=bucket_name, Key=key)
-        raw_bytes = BytesIO(raw_response["Body"].read())
-        raw_bytes.seek(0)
-        array = np.load(raw_bytes)
-        return array
-    except Exception as e:
-        print(f"Error downloading and loading array from S3: {e}")
-        return None
-
-def get_device_type(device_id):
-    """Checks whether a device is a head or hub"""
-    try:
-        return {"100": "mosaic","E66": "hydra"}[device_id.strip()[:3]]
-    except KeyError:
-        return "unknown"
-
-def on_key_press(event):
-    """Handles manual review's image interaction"""
-    global review_input
-    if event.key.upper() in 'YN':
-        review_input = event.key.upper() == 'Y'
-        plt.close()  # Close the plot after capturing the response
-
-def check_path(file_path):
-    """Check if a file exists in S3"""
-    result = s3client.list_objects(Bucket=bucket_name,Prefix=file_path)
-    if 'Contents' in result:  # if anything was found, it can only be the file
-        return True
-    return False
-
-def load_rgb_image_from_s3(key: str):
-    """Download rgb image from s3"""
-    try:
-        raw_response = s3client.get_object(Bucket=bucket_name, Key=key)
-        raw_bytes = BytesIO(raw_response["Body"].read())
-        raw_bytes.seek(0)
-    except Exception as e:
-        print(f"Error downloading and loading array from S3: {e}")
-        return None
-    raw_image_np_bytes = np.asarray(
-        bytearray(raw_bytes.read()), dtype=np.uint8)
-    rgb_image = cv2.imdecode(raw_image_np_bytes, cv2.IMREAD_COLOR)
-    if np.max(rgb_image) <= 1:
-        rgb_image = (rgb_image * 255).astype(np.uint8)
-    return rgb_image
-
-def get_img( bucket_name, device_id):
-    """finds the jpeg image in S3 and then downloads it"""
-    # jpeg images have a complicated file name that cannot be determined; we have to find the file name
-    response = s3client.list_objects_v2(Bucket=bucket_name,Prefix=device_id)
-    for item in response['Contents']:  # Check for files that end in JPEG
-        key = item.get('Key', '')
-        if key.endswith('.jpeg'):
-            return f'{key}'
-    return None
-
-def verify_rois_inside_contour(roi_map, mask):
-    """Jake's code to check if 50%+ of the points for a ROI are within mask map countor"""    
-    for roi in roi_map:
-        roi_x_loc_rgb = np.uint16(roi[:, :, 0])
-        roi_y_loc_rgb = np.uint16(roi[:, :, 1])
-        masked_roi_check = mask[roi_y_loc_rgb, roi_x_loc_rgb]
-        if np.count_nonzero(masked_roi_check) < 50:
-            return False
-    return True
-
-def manual_review(mask_edges_contours, roi, img_path):
-    """Has user check if the roi is passable or too far outside fov for even subpixel data"""
-    global review_input
-    review_input = False
-    img = load_rgb_image_from_s3(img_path)
-
-    # padding the image
-    if len(img.shape) == 3:
-        r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
-        img = 0.2989 * r + 0.5870 * g + 0.1140 * b
-    img_padded = np.zeros((520, 440)).astype(np.uint8)
-    img_padded[100:420, 100:340] = img
-    img = img_padded
-
-    cv2.drawContours(img, mask_edges_contours, -1, (255, 255, 255), 1)
-
-    fig, ax = plt.subplots(1, 1)
-    ax.set_title(f'Y for passing, N for failing')
-    ax.imshow(img, cmap='gray')
-
-    for region in roi:
-        ax.plot(region[:, :, 0], region[:, :, 1], 'ro', markersize=2)
-
-    fig.canvas.mpl_connect('key_press_event', on_key_press)
-    plt.show()
-
-    return review_input
-
-def main():
-    global logger
-    logger = configure_logger()
-
-    # Setup boto3
-    global s3client, bucket_name
-    s3client, bucket_name = setup_s3()
-
-    # defs
-    lines = []
-    bucket_name = 'kcam-calibration-data'
-    with open("/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt", 'r') as file:
-        for line in file:
-            lines.append(line)
-    for line in lines:
-        values = line.split()
-        device_id = values[0]
-        try:
-            serial_number = values[1]
-        except IndexError:
-            logger.warning("SN not found.")
-            serial_number = "none"
-        # print(device_id + "   " + serial_number)
-        view_image = 'N'
-        img_path = None
+class JSONChecker:
+    def __init__(self, values, s3client, bucket_name, logger) -> None:
+        self.logger = logger
+        self.s3client = s3client
+        self.bucket_name = bucket_name
+        self.device_id = values[0]
+        self.serial_number = self.get_serial_number(values)
 
         # output json bools defaults
-        id_check = True
-        serial_number_check = True
-        Auto_ROI = False
-        mask_matrix = False
-        valid_json = False
-        six_inch_png = False
-        six_inch_npy = False
-        nine_element_RGB = False
-        nine_element_trml = False
-        calc_trans = False
-        coord = False
-        sense = False
-        ROI_matrix = False
-        man_rev_req = False
-        man_rev = False
-        valid_jpeg = False
+        self.id_check = self.serial_number_check = True
+        self.exists_json = self.exists_6in_png = self.exists_6in_npy = False
+        self.exists_9ele_trml = self.exists_9ele_rgb = self.exists_calc_trans = False
+        self.exists_coord = self.exists_sense = self.exists_mask_matrix = False
+        self.exists_roi_matrix = self.man_rev_req = self.auto_check_pass = False
+        self.valid_jpeg = self.man_rev = self.review_input = False
 
-        device_type = get_device_type(device_id)
-        folder_id = device_id  # folder is deviceID for heads but cameraID for hubs
-        # Defs for file paths in S3
-        folder_path = f'{device_id}/'
-        json_path = f'{device_id}/data.json'
-        six_inch_png_path = f'{device_id}/6_inch.png'
-        six_inch_npy_path = f'{device_id}/6_inch.npy'
+        self.device_type = self.get_device_type(self.device_id)
+        self.inner_dir = self.device_id  # inner folder is deviceID for heads but cameraID for hubs
+        self.json_path = f'{self.device_id}/data.json'
+        self.six_inch_png_path = f'{self.device_id}/6_inch.png'
+        self.six_inch_npy_path = f'{self.device_id}/6_inch.npy'
 
-        # Checks:
-        folder = check_path(folder_path)
-        if folder:
-            valid_json = check_path(json_path)
-            if valid_json:
-                try:
-                    json_response = s3client.get_object(Bucket=bucket_name, Key=f'{device_id}/data.json')
-                    json_file_content = json_response['Body'].read().decode('utf-8')
-                    data_content = json.loads(json_file_content)
+    def get_serial_number(self, values):
+        if len(values) == 2:
+            return values[1]
+        else:
+            self.logger.warning("SN not found.")
+            return "none"
 
-                    camera_id = data_content['camera_id']
-                    if device_type == 'mosaic':  # set the hub's folder id before exceptions
-                        folder_id = camera_id
-                    js_device_id = data_content['device_id']
-                    hostname = data_content['hostname']
-                    hardware_id = data_content['hardware_id']
-                    qr_code = data_content['qr_code']
-                    part_number = data_content['part_number']
-                    js_serial_number = data_content['serial_number']
-                    print(data_content['work_order'])
+    def check_json(self):
+        if self.check_path(f'{self.device_id}/'):
+            self.validate_json()
+            # needed here or inner dir will be wrong for hubs
 
-                    # Checking if inputs match data.json
-                    if device_id != js_device_id:
-                        logger.error(" Device Id in Data.json is not the same as input.")
-                        id_check = False
-                        print("id is", js_device_id, "not", device_id)
-                    if serial_number != js_serial_number:
-                        serial_number_check = False
-                        if serial_number != 'none':
-                            logger.error(" Serial Number in Data.json is not the same as input.")
-                        print("\tSN is", js_serial_number, "not", serial_number)
+            self.exists_6in_png = self.log_exists(self.six_inch_png_path, "6inch.png")
+            self.exists_6in_npy = self.log_exists(self.six_inch_npy_path, "6inch.npy")
+            self.exists_9ele_rgb = self.log_exists(f'{self.device_id}/rgb_{self.inner_dir}_9element_coord.npy')
+            self.exists_9ele_trml = self.log_exists(f'{self.device_id}/trml_{self.inner_dir}_9element_coord.npy')
 
-                    # logging the json data for review by use
-                    logger.info("Data from json File: ")
-                    logger.info("Device ID:" + device_id)
-                    logger.info("Device Type:" + device_type)
-                    logger.info("Hostname:" + str(hostname))
-                    logger.info("Hardware ID:" + hardware_id)
-                    logger.info("Camera ID:" + camera_id)
-                    logger.info("QR Code:" + qr_code)
-                    logger.info("Part Number:" + part_number)
-                    logger.info("Serial Number:" + js_serial_number)
+            self.inner_dir_path = f'{self.device_id}/calculated_transformations/{self.inner_dir}'
+            self.exists_calc_trans = self.check_path(self.inner_dir_path)
+            if self.exists_calc_trans:
+                self.check_inner_paths()
+            else:  # if the self.check_path(calculated_transforms) failed
+                self.logger.info("Calculated transforms folder does not exist in S3")
 
-                except KeyError:
-                    logger.error("Json File Incomplete")
-                    print("\tKeys are", ', '.join(list(data_content.keys())))
-                    valid_json = False
-            else:
-                logger.error(" data.json does not extist in S3")
-                valid_json = False
-            # path definitions, needed here or folder id will be wrong for hubs
-            nine_points_rgb_path = f'{device_id}/rgb_{folder_id}_9element_coord.npy'
-            nine_points_trml_path = f'{device_id}/trml_{folder_id}_9element_coord.npy'
-            # calculated transforms Paths in S3
-            calculated_transforms_path = f'{device_id}/calculated_transformations/{folder_id}'
-            ROI_path = (
-                f'{device_id}/calculated_transformations/{folder_id}/regions_of_interest_matrix_{device_type}_{folder_id}.npy')
-            Mask_path = (
-                f'{device_id}/calculated_transformations/{folder_id}/mapped_mask_matrix_{device_type}_{folder_id}.npy')
-            Coord_path = (
-                f'{device_id}/calculated_transformations/{folder_id}/mapped_coordinates_matrix_{device_type}_{folder_id}.npy')
-            Sense_path = (
-                f'{device_id}/calculated_transformations/{folder_id}/sensitivity_correction_matrix_{device_type}_{folder_id}.npy')
+            self.get_status()
+            self.save_json()
+        else:  # if the self.check_path(self.device_id) failed
+            self.logger.error("This device has no files in S3")
 
-            # Checking for the cal files outside the calculated transforms folder
-            six_inch_png = check_exists(six_inch_png_path, "6inch.png")
-            six_inch_npy = check_exists(six_inch_npy_path, "6inch.npy")
-            nine_element_RGB = check_exists(nine_points_rgb_path)
-            nine_element_trml = check_exists(nine_points_trml_path)
+        self.logger.info("All possible Cal Data Checks Complete")
 
-            calc_trans = check_path(calculated_transforms_path)
-            if calc_trans:
-                coord = check_exists(Coord_path, "Mapped Coord Matrix")
-                mask_matrix = check_exists(Mask_path, "Mapped Mask Matrix")
-                sense = check_exists(Sense_path, "Sensitivity Correction Matrix")
+    def validate_json(self):
+        self.exists_json = self.check_path(self.json_path)
+        if self.exists_json:
+            try:
+                json_response = self._get_s3_object(f'{self.device_id}/data.json')
+                data_content = json.loads(json_response['Body'].read().decode('utf-8'))
+                self.read_data(data_content)
+                self.log_info()
 
-                ROI_matrix = check_path(ROI_path)
-                if ROI_matrix:
-                    roi_map = load_array_from_s3(bucket_name,
-                                           f'{device_id}/calculated_transformations/{folder_id}/regions_of_interest_matrix_{device_type}_{folder_id}.npy')
-                    mask = load_array_from_s3(bucket_name,
-                                           f'{device_id}/calculated_transformations/{folder_id}/mapped_mask_matrix_{device_type}_{folder_id}.npy')
-                    mask = mask.astype(np.uint8) * 255
+                self.id_check = self.check_js_matches(self.device_id, self.js_device_id, "Device ID")
+                self.serial_number_check = self.check_js_matches(self.serial_number, self.js_serial_number, "Serial Number")
+            except KeyError:
+                self.logger.error("Json File Incomplete")
+                print("\tKeys are", ', '.join(list(data_content.keys())))
+                self.exists_json = False
+        else:
+            self.logger.error("data.json does not exist in S3")
 
-                    pass_fail = verify_rois_inside_contour(roi_map, mask)
-                    man_rev = False
-                    if pass_fail:  # user can review images where 50%+ ROIs outside mask
-                        # Manual review
-                        Auto_ROI = False
-                        man_rev_req = True
-                        logger.error("Auto ROI check FAILED.")
-                        print("Do you want to start the manual review?")
-                        view_image = input("Type 'Y' for yes or 'N' for No: ").upper()[0]
-                        if view_image == 'Y':
-                            logger.info("Press 'Y' to close Image")
-                            img_path = get_img(bucket_name, device_id)
+    def _get_s3_objects(self, Prefix):
+        return self.s3client.list_objects_v2(Bucket=self.bucket_name,Prefix=Prefix)
 
-                            valid_jpeg = img_path != None  # check to make sure there are jpeg files in S3
-                            if valid_jpeg:
-                                mask_edges = cv2.Canny(mask, 30, 200)
-                                mask_edges_contours, _ = cv2.findContours(mask_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-                                man_rev = manual_review(mask_edges_contours, roi_map, img_path)
-                                logger.info("Manual Review Complete")
-                            else:  # If there are no jpeg files in S3
-                                logger.error(" No Jpeg files exist in S3. Cannot continue Manual Review")
-                        else:
-                            print("Manual Review Declined")
-                    else:  # if auto ROI check passed
-                        logger.info("All ROI's are in thermal cam FOV")
-                        Auto_ROI = True
-                        man_rev_req = False
-                        logger.info("All Cal Data Checks Complete")
-            else:  # if the check_path(calculated_transforms) failed
-                logger.info("Calculated transforms folder does not exist in S3")
+    def _get_s3_object(self, Key):
+        return self.s3client.get_object(Bucket=self.bucket_name,Key=Key)
 
-            if not man_rev:
-                if not Auto_ROI:
-                    if valid_jpeg and ROI_matrix and mask_matrix:  # user hit N
-                        man_rev_status = 'User Declined Review'
-                    else:  # can't run review
-                        man_rev_req = False
-                        man_rev_status = 'Missing Prerequisites'
-                else:  # auto worked so man review was not needed
-                    man_rev_status = "Auto ROI Check Passed"
-            else:  # user hit Y
-                man_rev_status = "Manual Review Completed"
+    def check_path(self, file_path):
+        """Check if a file exists in S3"""
+        return 'Contents' in self._get_s3_objects(file_path)  # if anything was found, it can only be the file
 
-            # printing Results to QA_Check.json
-            json_key = f'{device_id}/QA_Check_Dev.json'
-            QA_Check = {
-                "Data.json Exists And is Complete": valid_json,
-                "Input Device Id Matches ID in json": id_check,
-                "Input Serial Number Matches SN in json": serial_number_check,
-                "6_inch.png Exists": six_inch_png,
-                "6_inch.npy Exists": six_inch_npy,
-                f"rgb_{folder_id}_9elementcoord.npy Exists": nine_element_RGB,
-                f"trml_{folder_id}_9elementcoord.npy Exists": nine_element_trml,
-                "Calculated Transforms Folder Exists": calc_trans,
-                "Mapped Coordinates Matrix Exists": coord,
-                "Mapped Mask Matrix Exists": mask_matrix,
-                "Regions of Interest Matrix Exists": ROI_matrix,
-                "Sensitivity Correction Matrix Exists": sense,
-                "Auto ROI Check Pass": Auto_ROI,
-                "Manual Review required": man_rev_req,
-                "ROIs Reviewed by user": man_rev,
-                "ROI Review Status": man_rev_status
-            }
-            json_data = json.dumps(QA_Check, indent=4)
-            s3client.put_object(Bucket=bucket_name, Key=json_key, Body=BytesIO(json_data.encode('utf-8')))
-            logger.info("json file written to S3")
-        else:  # if the check_path(device_id) failed
-            logger.error(" This device has no files in S3")
-        logger.info("All possible Cal Data Checks Complete")
+    def log_exists(self, path, file_name=''):
+        exists = self.check_path(path)
+        if not exists and file_name:
+            self.logger.error(path + " does not exist in S3")
+        return exists
 
+    def check_js_matches(self, local, js, name):
+        if local != js:
+            self.logger.error(f"{name} in data.json is not the same as input.")
+            print(f"\t{name} is", js, "not", local)
+            return False
+        return True
 
-        # if folder:  # Can't put QA_Check.json in device folder if the folder does not exist
+    def read_data(self, data_content):
+        self.camera_id = data_content['camera_id']
+        if self.device_type == 'mosaic':  # set the hub's folder id before any exceptions
+            self.inner_dir = self.camera_id
+        self.js_device_id = data_content['device_id']
+        self.hostname = data_content['hostname']
+        self.hardware_id = data_content['hardware_id']
+        self.qr_code = data_content['qr_code']
+        self.part_number = data_content['part_number']
+        self.js_serial_number = data_content['serial_number']
+        self.work_order = data_content['work_order']
+        print(self.work_order)
+
+    def get_device_type(self, device_id):
+        """Determines whether a device is a head or hub"""
+        return {"100": "mosaic", "E66": "hydra"}.get(device_id.strip()[:3], "unknown")
+    
+    def load_file_from_s3(self, key):
+        try:
+            raw_response = self._get_s3_object(Key=key)
+            raw_bytes = BytesIO(raw_response["Body"].read())
+            raw_bytes.seek(0)
+            return raw_bytes
+        except Exception as e:
+            print(f"Error downloading from S3: {e}")
+            return None
+
+    def load_array_from_s3(self, key):
+        """Downloads a single array file from S3 and loads it into a NumPy array."""
+        raw_bytes = self.load_file_from_s3(key)
+        if raw_bytes is not None:
+            array = np.load(raw_bytes)
+            return array
+        return None
+        
+    def load_rgb_image_from_s3(self, key: str):
+        """Download rgb image from s3"""
+        raw_bytes = self.load_file_from_s3(key)
+        if raw_bytes is not None:
+            raw_image_bytes = np.frombuffer(raw_bytes.read(), dtype=np.uint8)
+            rgb_image = cv2.imdecode(raw_image_bytes, cv2.IMREAD_COLOR)
+            if np.max(rgb_image) <= 1:
+                rgb_image = (rgb_image * 255).astype(np.uint8)
+            return rgb_image
+        return None
+
+    def find_img(self):
+        """finds the jpeg image in S3 and returns the path"""
+        # jpeg images have a complicated file name that cannot be determined; have to find the file name
+        response = self._get_s3_objects(self.device_id)
+        for item in response['Contents']:  # Check for files that end in JPEG
+            key = item.get('Key', '')
+            if key.endswith('.jpeg'):
+                return f'{key}'
+        return None
+    
+    def check_inner_paths(self):
+        coord_path = (f'{self.inner_dir_path}/mapped_coordinates_matrix_{self.device_type}_{self.inner_dir}.npy')
+        sense_path = (f'{self.inner_dir_path}/sensitivity_correction_matrix_{self.device_type}_{self.inner_dir}.npy')
+        roi_path = (f'{self.inner_dir_path}/regions_of_interest_matrix_{self.device_type}_{self.inner_dir}.npy')
+        mask_path = (f'{self.inner_dir_path}/mapped_mask_matrix_{self.device_type}_{self.inner_dir}.npy')
+
+        self.exists_coord = self.log_exists(coord_path, "Mapped Coord Matrix")
+        self.exists_sense = self.log_exists(sense_path, "Sensitivity Correction Matrix")
+
+        self.exists_mask_matrix = self.log_exists(mask_path, "Mapped Mask Matrix")
+        self.exists_roi_matrix = self.check_path(roi_path)
+        if self.exists_roi_matrix and self.exists_mask_matrix:
+            self.verify_rois(roi_path, mask_path)
+    
+    def verify_rois(self, roi_path, mask_path):
+        self.roi_map = self.load_array_from_s3(roi_path)
+        self.mask = self.load_array_from_s3(mask_path).astype(np.uint8) * 255
+
+        self.auto_check_pass = self.verify_rois_inside_contour()
+        self.man_rev_req = not self.auto_check_pass
+        if True:  # user can review images where 50%+ ROIs outside mask
+        # if not self.auto_check_pass:  # user can review images where 50%+ ROIs outside mask
+            self.logger.error("Auto ROI check FAILED.")
+            self.start_review()
+        else:  # if auto ROI check passed
+            self.logger.info("Auto check passed; all ROIs are in thermal cam FOV")
+
+    def start_review(self):
+        print("Do you want to start the manual review?")
+        if input("Type 'Y' for yes or 'N' for No:\n")[0].upper() == 'Y':
+            self.img_path = self.find_img()
+
+            self.valid_jpeg = self.img_path != None  # check to make sure there are jpeg files in S3
+            if self.valid_jpeg:
+                self.mask_edges_contours, _ = cv2.findContours(cv2.Canny(self.mask, 30, 200), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+                self.man_rev = self.manual_review()
+                self.logger.info("Manual Review Complete")
+            else:  # If there are no jpeg files in S3
+                self.logger.error("No Jpeg files exist in S3. Cannot continue Manual Review")
+                self.man_rev_req = False
+        else:
+            print("Manual Review Declined")
+
+    def verify_rois_inside_contour(self):
+        """Jake's code to check if 50%+ of the points for a ROI are within mask map countor"""    
+        for roi in self.roi_map:
+            roi_x_loc_rgb = np.uint16(roi[:, :, 0])
+            roi_y_loc_rgb = np.uint16(roi[:, :, 1])
+            masked_roi_check = self.mask[roi_y_loc_rgb, roi_x_loc_rgb]
+            if np.count_nonzero(masked_roi_check) < 50:
+                return False
+        return True
+
+    def on_key_press(self, event):
+        """Handles manual review's image interaction"""
+        if event.key.upper() in 'YN':
+            self.review_input = event.key.upper() == 'Y'
+            plt.close()  # Close the plot after capturing the response
+
+    def pad_image(self, img):
+        if len(img.shape) == 3:
+            r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
+            img = 0.2989 * r + 0.5870 * g + 0.1140 * b
+        img_padded = np.zeros((520, 440)).astype(np.uint8)
+        img_padded[100:420, 100:340] = img
+        return img_padded
+
+    def plot_img(self, ax):
+        img = self.pad_image(self.load_rgb_image_from_s3(self.img_path))
+        cv2.drawContours(img, self.mask_edges_contours, -1, (255, 255, 255), 1)
+        for region in self.roi_map:
+            ax.plot(region[:, :, 0], region[:, :, 1], 'ro', markersize=2)
+        ax.imshow(img, cmap='grey')
+
+    def manual_review(self):
+        """Has user check if the roi is passable or too far outside fov for even subpixel data"""
+        fig, ax = plt.subplots()
+        ax.set_title(f'Y for passing, N for failing')
+        self.plot_img(ax)
+        fig.canvas.mpl_connect('key_press_event', self.on_key_press)
+        plt.show()
+        return self.review_input
+
+    def get_status(self):
+        if not self.man_rev:
+            if not self.auto_check_pass:
+                if self.valid_jpeg and self.exists_roi_matrix and self.exists_mask_matrix:  # user hit N
+                    self.man_rev_status = 'User Declined Review'
+                else:  # can't run review
+                    self.man_rev_status = 'Missing Prerequisites'
+            else:  # auto worked so man review was not needed
+                self.man_rev_status = "Auto ROI Check Passed"
+        else:  # user hit Y
+            self.man_rev_status = "Manual Review Completed"
+
+    def log_info(self):
+        self.logger.info("Data from json File: ")
+        self.logger.info("Device ID:" + self.device_id)
+        self.logger.info("Device Type:" + self.device_type)
+        self.logger.info("Hostname:" + str(self.hostname))
+        self.logger.info("Hardware ID:" + self.hardware_id)
+        self.logger.info("Camera ID:" + self.camera_id)
+        self.logger.info("QR Code:" + self.qr_code)
+        self.logger.info("Part Number:" + self.part_number)
+        self.logger.info("Serial Number:" + self.js_serial_number)
+        self.logger.info("Work Order:" + self.work_order)
+
+    def save_json(self):
+        json_key = f'{self.device_id}/QA_Check_Dev.json'
+        QA_Check = {
+            "Data.json Exists And is Complete": self.exists_json,
+            "Input Device Id Matches ID in json": self.id_check,
+            "Input Serial Number Matches SN in json": self.serial_number_check,
+            "6_inch.png Exists": self.exists_6in_png,
+            "6_inch.npy Exists": self.exists_6in_npy,
+            f"rgb_{self.inner_dir}_9elementcoord.npy Exists": self.exists_9ele_rgb,
+            f"trml_{self.inner_dir}_9elementcoord.npy Exists": self.exists_9ele_trml,
+            "Calculated Transforms Folder Exists": self.exists_calc_trans,
+            "Mapped Coordinates Matrix Exists": self.exists_coord,
+            "Mapped Mask Matrix Exists": self.exists_mask_matrix,
+            "Regions of Interest Matrix Exists": self.exists_roi_matrix,
+            "Sensitivity Correction Matrix Exists": self.exists_sense,
+            "Auto ROI Check Pass": self.auto_check_pass,
+            "Manual Review required": self.man_rev_req,
+            "ROIs Reviewed by user": self.man_rev,
+            "ROI Review Status": self.man_rev_status
+        }
+        json_data = json.dumps(QA_Check, indent=4)
+        self.s3client.put_object(Bucket=self.bucket_name, Key=json_key, Body=BytesIO(json_data.encode('utf-8')))
+        self.logger.info("json file written to S3")
+
+def main():
+    logger = configure_logger()
+    s3client, bucket_name = setup_s3()
+    with open("/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt", 'r') as file:
+        lines = [line for line in file]
+    for line in lines:
+        values = line.split()
+        jc = JSONChecker(values, s3client, bucket_name, logger)
+        jc.check_json()
 
 if __name__ == "__main__":
     main()

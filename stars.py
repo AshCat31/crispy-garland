@@ -21,7 +21,7 @@ def main(stdscr):
         for i in range(grid_height):
             for j in range(grid_width):
                 if i * grid_width + j in stars_indices:
-                    stdscr.addch(i, j, random.choice(['*', 'X', '+']))
+                    stdscr.addch(i, j, random.choice(['*', 'X', '+', '.', '@']))
                 else:
                     stdscr.addch(i, j, ' ')
         stdscr.refresh()

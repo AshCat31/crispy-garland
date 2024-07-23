@@ -8,39 +8,28 @@ __copyright__ = """
 """
 
 import io
-import boto3
+import statistics
 
-import cv2
-from PIL import Image as PImage
+from s3_setup import S3Setup
 import matplotlib.pyplot as plt
 import numpy as np
-import imutils
-import statistics
+
 
 def main():
     device_list = []
-    doc_path = '/home/canyon/Test_Equipment/QA_ids.txt'
+    doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
     with open(doc_path, 'r') as file:
         for line in file:
             values = line.split()
             device_list.append(values[0])
-
-    cred = boto3.Session().get_credentials()
-    ACCESS_KEY = cred.access_key 
-    SECRET_KEY = cred.secret_key 
-    SESSION_TOKEN = cred.token 
     global s3client
-    s3client = boto3.client('s3',
-                            aws_access_key_id = ACCESS_KEY,
-                            aws_secret_access_key = SECRET_KEY,
-                            aws_session_token = SESSION_TOKEN,
-                            )
-    bucket_name = 'kcam-calibration-data'
+    s3c = S3Setup()
+    s3client, bucket_name = s3c()
 
     device_type_dict = {"100": ("_mosaic",), "E66": ("_hydra",)}
     coverage_percents = []
     for i, device_id in enumerate(device_list):
-        print(i+1, device_id)
+        print(i + 1, device_id)
         device_type = device_type_dict[device_id[:3]][0]
         try:
             mask_response = get_mask("", device_id, device_type, bucket_name, coverage_percents)
@@ -55,6 +44,7 @@ def main():
     plt.bar_label(bars)
     plt.show()
 
+
 def get_mask(ct, device_id, device_type, bucket_name, coverage_percents):
     key = f'{device_id}/calculated_transformations{ct}/{device_id}/mapped_mask_matrix{device_type}_{device_id}.npy'
     mask_response = s3client.get_object(Bucket=bucket_name, Key=key)
@@ -62,7 +52,8 @@ def get_mask(ct, device_id, device_type, bucket_name, coverage_percents):
     mask_bytes.seek(0)
     mask_map = np.load(mask_bytes).astype(np.uint8) * 255
     mask_map = mask_map[100:420, 100:340]
-    coverage_percents.append(np.count_nonzero(mask_map)/mask_map.size)
+    coverage_percents.append(np.count_nonzero(mask_map) / mask_map.size)
+
 
 if __name__ == "__main__":
     main()

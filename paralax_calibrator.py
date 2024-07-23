@@ -17,22 +17,17 @@ __copyright__ = """
     Other Patents Pending.
 """
 
-import os
-import math
 import logging
-
-import cv2
-import csv
-import numpy as np
-from numpy.linalg import inv
-from matplotlib import pyplot as plt
-import matplotlib.image as mpimg
-
-import tkinter as tk
-from tkinter import filedialog
-
+import math
+import os
 # Ignore DeprecationWarning:
 import warnings
+
+import cv2
+import matplotlib.image as mpimg
+import numpy as np
+from matplotlib import pyplot as plt
+from numpy.linalg import inv
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -56,7 +51,7 @@ class ParalaxCalibrator:
         self.rgb_d = 1 - self.rgb_c
         self.rgb_radius_norm_factor = self.rgb_img_size[0] / 2  # The smallest dimension divided by 2
 
-        # Default emissitivy value, in case that no emissivity_matrix avilable
+        # Default emissivity value, in case that no emissivity_matrix available
         self.default_emissivity = 0.9
 
         # Thermal camera:
@@ -98,7 +93,7 @@ class ParalaxCalibrator:
         # Scale the thermal image by a factor or 10 (from 32x24 to 320x240) for better smoothness of the heatmap
         trml_matrix_scaled = get_scaled_trml_image_optimized(self.thermalImage)
         trml_matrix_scaled = np.array((trml_matrix_scaled - np.min(trml_matrix_scaled)) / (
-                    np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled)) * 255).astype(np.uint8)
+                np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled)) * 255).astype(np.uint8)
         # Save the scaled image for opening it
         cv2.imwrite('trml_matrix_scaled.jpg', trml_matrix_scaled)
         # Read thermal image
@@ -659,11 +654,11 @@ class ParalaxCalibrator:
         a, b, c = parabolic_coef
         return a * (original_angle ** 2) + b * original_angle + c
 
-    def get_trml_coordinates(self, unbounded_coordinates, trml_img_size, round=True):
+    def get_trml_coordinates(self, unbounded_coordinates, trml_img_size, round_bool=True):
         trml_row = np.clip(np.round(unbounded_coordinates[1]), 0, trml_img_size[0] - 1)
         trml_col = np.clip(np.round(unbounded_coordinates[0]), 0, trml_img_size[1] - 1)
 
-        if round:
+        if round_bool:
             trml_row = int(trml_row)
             trml_col = int(trml_col)
         return trml_row, trml_col
@@ -671,10 +666,10 @@ class ParalaxCalibrator:
     def get_sensitivity_correction_factor(self, angular_coordinates):
         approx_true_angle_x = (angular_coordinates[0] * 75) / 100
         approx_true_angle_y = (angular_coordinates[1] * 110) / 100
-        angular_diff_distnace = pow((pow(approx_true_angle_x, 2) + pow(approx_true_angle_y, 2)), 0.5)
+        angular_diff_distance = pow((pow(approx_true_angle_x, 2) + pow(approx_true_angle_y, 2)), 0.5)
 
         # Get gaussian value
-        gaussian_val = math.exp(-0.5 * pow(angular_diff_distnace / self.sens_sigma, 2))
+        gaussian_val = math.exp(-0.5 * pow(angular_diff_distance / self.sens_sigma, 2))
 
         sensitivity_correction_factor = 1 / gaussian_val
 
@@ -690,7 +685,7 @@ def main():
     # -----------------------------------------------------------
     ##### Grab Thermal and RGB Images
     # -----------------------------------------------------------
-    doc_path = '/home/canyon/Test_Equipment/QA_ids.txt'
+    doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
     with open(doc_path) as csv_file:
         # reader = csv.reader(csv_file, delimiter='\t')
         reader = csv_file.read()  # allows tabs and spaces
@@ -702,6 +697,7 @@ def main():
             global dev_id
             dev_id = row[0]
             cal_device(dev_id)
+
 
 def cal_device(dev_id):
     print(dev_id)
@@ -720,7 +716,8 @@ def cal_device(dev_id):
     rgb_coordinates_file_path = base_path + '/rgb_' + dev_id + '_9element_coord.npy'
     trml_coordinates_file_path = base_path + '/trml_' + dev_id + '_9element_coord.npy'
     coordinatFiles = os.path.isfile(rgb_coordinates_file_path) and os.path.isfile(trml_coordinates_file_path)
-    if not coordinatFiles:
+    if not os.path.isfile(trml_coordinates_file_path):
+        print("select thermal")
         # Read thermal image
         trml_arr = np.load(trml_img_path)
         # Make sure that thermal image is 2d (single thermal shot) or 3d (a set of thermal shots)
@@ -732,7 +729,7 @@ def cal_device(dev_id):
         # Scale the thermal image by a factor or 10 (from 32x24 to 320x240) for better smoothness of the heatmap
         trml_matrix_scaled = get_scaled_trml_image_optimized(trml_arr)
         trml_matrix_scaled = np.array((trml_matrix_scaled - np.min(trml_matrix_scaled)) / (
-                    np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled)) * 255).astype(np.uint8)
+                np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled)) * 255).astype(np.uint8)
         # Save the scaled image for opening it
         cv2.imwrite('trml_matrix_scaled.jpg', trml_matrix_scaled)
         # Read thermal image
@@ -741,7 +738,11 @@ def cal_device(dev_id):
         trml_elements_coordinates = sample_coordinate_of_corners(trml_img)  # thermal element coordinates
         if trml_elements_coordinates is not None:
             save_sampled_coordinates(trml_elements_coordinates, trml_coordinates_file_path)
-
+    else:
+        print("Using existing Thermal coordinates")
+        trml_elements_coordinates = np.load(trml_coordinates_file_path)
+    if not os.path.isfile(rgb_coordinates_file_path):
+        print("select rgb")
         # Read rgb image
         rgb_img = mpimg.imread(rgb_img_path)
 
@@ -755,8 +756,7 @@ def cal_device(dev_id):
         if rgb_elements_coordinates is not None:
             save_sampled_coordinates(rgb_elements_coordinates, rgb_coordinates_file_path)
     else:
-        print("Using existing coordinates")
-        trml_elements_coordinates = np.load(trml_coordinates_file_path)
+        print("Using existing RGB coordinates")
         rgb_elements_coordinates = np.load(rgb_coordinates_file_path)
     # -----------------------------------------------------------
     # Create Cal Files

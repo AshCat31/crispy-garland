@@ -9,6 +9,7 @@ def download_json(deviceId):
         return False
     return True
 
+
 def upload_json(deviceId):
     output = os.system(
         f'aws s3 cp ~/S3bucket/{deviceId}/data.json s3://kcam-calibration-data/{deviceId}/data.json')
@@ -16,7 +17,8 @@ def upload_json(deviceId):
         return False
     return True
 
-with open("/home/canyon/Test_Equipment/IDs_to_change_SNs.txt", "r") as id_file:
+
+with open("/home/canyon/Test_Equipment/crispy-garland/IDs_to_change_SNs.txt", "r") as id_file:
     for line in id_file:
         device = line.split()
         id = device[0]

@@ -5,6 +5,7 @@ There is a separate function for thermal images and rgb images.
 import math
 
 import cv2
+from PIL import Image
 import numpy as np
 import imutils
 

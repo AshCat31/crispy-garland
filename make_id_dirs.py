@@ -5,17 +5,10 @@ path = '/home/canyon/S3bucket'
 
 with open(device_file, 'r') as file:
     for line in file:
-        # Strip any whitespace (like newlines) from the line
         folder_name = line.split()[0].strip()
-        print(folder_name)
-        
-        # Construct full path for the new folder
-        folderpath = os.path.join(path, folder_name, "calculated_transforms",folder_name)
-        
-        # Check if the folder already exists
+        folderpath = os.path.join(path, folder_name, "calculated_transforms", folder_name)
         if os.path.exists(folderpath):
             print(f"Folder already exists: {folderpath}")
         else:
-            # Create the folder
             os.makedirs(folderpath)
             print(f"Created folder: {folderpath}")

@@ -1,7 +1,7 @@
 import json
 import logging
 
-from s3_setup import setup_s3
+from s3_setup import S3Setup
 
 
 def main(s3c=None, bkn=None):
@@ -11,8 +11,9 @@ def main(s3c=None, bkn=None):
     logging.addLevelName(logging.ERROR, "\033[1;41m%s\033[1;0m" % logging.getLevelName(logging.ERROR))
     logging.basicConfig(level=logging.WARN, format=log_format)
 
-    if s3c == None:
-        s3client, _bucket_name = setup_s3()
+    if s3c is None:
+        s3c = S3Setup()
+        s3c, _bucket_name = s3c()
     else:
         s3client, _bucket_name = s3c, bkn
     with open('QA_ids.txt', 'r') as file:
@@ -23,7 +24,7 @@ def main(s3c=None, bkn=None):
                 json_response = s3client.get_object(Bucket=_bucket_name, Key=f'{device_id}/data.json')
                 json_file_content = json_response['Body'].read().decode('utf-8')  # downloading the json
                 data_content = json.loads(json_file_content)
-                key = 'device_id'
+                key = 'serial_number'
                 print(f"{device_id}'s current value for {key} is {data_content[key]}")
                 new_value = input("New value, or enter to keep existing:\n")
                 if new_value:
@@ -39,5 +40,7 @@ def main(s3c=None, bkn=None):
                     print("Keeping existing value for", key)
             except Exception as e:
                 print(device_id, e)
+
+
 if __name__ == '__main__':
     main()

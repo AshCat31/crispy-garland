@@ -14,14 +14,15 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image as PImage
-from s3_setup import setup_s3
+from s3_setup import S3Setup
 
 
 def main():
     device_list = []
     failures = []
     doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
-    s3client, bucket_name = setup_s3()
+    s3c = S3Setup()
+    s3client, bucket_name = s3c()
     show_plot = False
     with open(doc_path, 'r') as file:
         for line in file:

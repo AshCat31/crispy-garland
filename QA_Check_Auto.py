@@ -12,9 +12,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
-from s3_setup import setup_s3
-
-import snoop
+from s3_setup import S3Setup
 
 
 def configure_logger():
@@ -304,7 +302,8 @@ class JSONChecker:
 
 def main():
     logger = configure_logger()
-    s3client, bucket_name = setup_s3()
+    s3c = S3Setup()
+    s3client, bucket_name = s3c()
     with open("/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt", 'r') as file:
         lines = [line for line in file]
     for line in lines:

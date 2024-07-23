@@ -2,7 +2,7 @@ import json
 import numpy as np
 import pandas as pd
 
-from s3_setup import setup_s3
+from s3_setup import S3Setup
 
 
 def load_json(deviceId):
@@ -72,7 +72,8 @@ def write_to_csv(mismatched_qr_codes, filename):
     print(f"Total mismatches: {len(mismatched_qr_codes)}")
 
 if __name__ == "__main__":
-    s3client, bucket_name = setup_s3()
+    s3c = S3Setup()
+    s3client, bucket_name = s3c()
     id_file = np.genfromtxt("unique_ids.csv", delimiter=",", skip_header=1, dtype=str)
     mismatched_qr_codes = check_qr_code_mismatches(id_file)
     write_to_csv(mismatched_qr_codes, "mismatched_qr_codes.csv")

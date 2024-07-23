@@ -1,7 +1,7 @@
 import json
 import logging
 
-from s3_setup import setup_s3
+from s3_setup import S3Setup
 
 
 def main(s3c=None, bkn=None):
@@ -12,7 +12,8 @@ def main(s3c=None, bkn=None):
     logging.basicConfig(level=logging.WARN, format=log_format)
 
     if s3c is None:
-        s3client, _bucket_name = setup_s3()
+        s3c = S3Setup()
+        s3c, _bucket_name = s3c()
     else:
         s3client, _bucket_name = s3c, bkn
     with open('QA_ids.txt', 'r') as file:

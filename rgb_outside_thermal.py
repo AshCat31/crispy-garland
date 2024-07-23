@@ -10,7 +10,7 @@ __copyright__ = """
 import io
 import statistics
 
-from s3_setup import setup_s3
+from s3_setup import S3Setup
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -23,7 +23,8 @@ def main():
             values = line.split()
             device_list.append(values[0])
     global s3client
-    s3client, bucket_name = setup_s3()
+    s3c = S3Setup()
+    s3client, bucket_name = s3c()
 
     device_type_dict = {"100": ("_mosaic",), "E66": ("_hydra",)}
     coverage_percents = []

@@ -16,7 +16,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 
-from s3_setup import setup_s3
+from s3_setup import S3Setup
 
 def main():
     # Setup device list
@@ -28,8 +28,9 @@ def main():
             device_list.append(values[0])
 
     # Setup boto3
-    
-    s3client, _bucket_name = setup_s3()
+
+    s3c = S3Setup()
+    s3client, bucket_name = s3c()
 
     hub_base_image = ['/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_one.jpeg',
                       '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_two.jpeg',

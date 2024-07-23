@@ -7,7 +7,7 @@ import numpy as np
 from matplotlib import patches
 from matplotlib.cm import ScalarMappable
 
-from s3_setup import setup_s3
+from s3_setup import S3Setup
 
 
 def vector_plot(magnitude, angle_degrees, color='black', zorder=10):
@@ -85,7 +85,8 @@ with open(doc_path, 'r') as file:
         else: 
             raise ValueError("ROI failures not in file")
 global s3client
-s3client, bucket_name = setup_s3()
+s3c = S3Setup()
+s3client, bucket_name = s3c()
 
 fig, ax = plt.subplots(1, 1)
 vectors = np.genfromtxt("Test_vec_integrated.csv", delimiter=",", skip_header=1, dtype='<U25')

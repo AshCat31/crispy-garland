@@ -1,5 +1,6 @@
 import boto3
 
+
 def setup_s3():
     cred = boto3.Session().get_credentials()
     ACCESS_KEY = cred.access_key 

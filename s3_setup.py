@@ -2,6 +2,7 @@ import boto3
 
 
 def setup_s3():
+    """Returns s3client, bucket_name"""
     cred = boto3.Session().get_credentials()
     ACCESS_KEY = cred.access_key
     SECRET_KEY = cred.secret_key

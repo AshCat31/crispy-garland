@@ -49,49 +49,21 @@ class ROIChecker:
         self.i = i
         self.x_trans = self.y_trans = 0
 
-        hub_base_image = [['/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_one.jpeg',
-                        '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_two.jpeg',
-                        '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_three.jpeg',
-                        '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_four.jpeg',
-                        '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_five.jpeg',
-                        '/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_six.jpeg']]
+        hub_base_image = ['/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_one.jpeg',]
         hub_rois = [[
             '/home/canyon/Test_Equipment/hub_alignment_test/roi1.npy',  # 10000000eed77a0e
-            # '/home/canyon/Test_Equipment/hub_alignment_test/roi2.npy',  # 100000006e0c4dcf  # doesn't have rois??
             '/home/canyon/Test_Equipment/hub_alignment_test/roi3.npy',  # 1000000000eb7857
             '/home/canyon/Test_Equipment/hub_alignment_test/roi4.npy',  # 10000000011e44c9
             '/home/canyon/Test_Equipment/hub_alignment_test/roi5.npy',  # 1000000002b88c87
-            # '/home/canyon/Test_Equipment/hub_alignment_test/roi6.npy',  # 1000000002be265d  # more of the random dots
             '/home/canyon/Test_Equipment/hub_alignment_test/roi7.npy',  # 1000000003676bf1
             '/home/canyon/Test_Equipment/hub_alignment_test/roi8.npy',  # 10000000037c5199
             '/home/canyon/Test_Equipment/hub_alignment_test/roi9.npy',  # 1000000003a42eec
-            # '/home/canyon/Test_Equipment/hub_alignment_test/roi10.npy',
         ]]
         head_base_image = [
-            ['/home/canyon/Test_Equipment/head_alignment_test/port0_one.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port0_two.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port0_three.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port0_four.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port0_five.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port0_six.jpeg', ],
-            ['/home/canyon/Test_Equipment/head_alignment_test/port1_one.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port1_two.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port1_three.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port1_four.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port1_five.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port1_six.jpeg', ],
-            ['/home/canyon/Test_Equipment/head_alignment_test/port2_one.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port2_two.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port2_three.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port2_four.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port2_five.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port2_six.jpeg', ],
-            ['/home/canyon/Test_Equipment/head_alignment_test/port3_one.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port3_two.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port3_three.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port3_four.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port3_five.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port3_six.jpeg', ]
+            '/home/canyon/Test_Equipment/head_alignment_test/port0_one.jpeg',
+            '/home/canyon/Test_Equipment/head_alignment_test/port1_one.jpeg',
+            '/home/canyon/Test_Equipment/head_alignment_test/port2_one.jpeg',
+            '/home/canyon/Test_Equipment/head_alignment_test/port3_one.jpeg',
         ]
         head_rois = [
             ['/home/canyon/Test_Equipment/head_alignment_test/auto_port0_one.npy',
@@ -188,7 +160,7 @@ class ROIChecker:
         for port in range(self.num_ports):
             if self.show_plot:
                 self.axs[port].clear()
-            rgb_img = PImage.open(self.base_image[port][0])
+            rgb_img = PImage.open(self.base_image[port])
             # Plot ROIs with new translation
             colors = ['brown', 'cyan', 'magenta', 'blue', 'green', 'yellow', 'orange', 'red']
             cidx = 0

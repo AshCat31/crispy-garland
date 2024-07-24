@@ -3,6 +3,7 @@ import getCal as get
 import paralax_calibrator as cal
 import paralax_check as check
 import putCal as put
+from auto_calibration_new.automatic_rgb_thermal_mapping import Mapper
 
 def main():
     print("Auto calibrating...")
@@ -10,12 +11,13 @@ def main():
         for line in id_file:
             device = line.split("    ")
             dev_id = device[0]
-            # success = darcm(device[0])
-            # if not success:
-            print("Auto failed, doing manual")
-            get.download_device(dev_id)
-            cal.cal_device(dev_id)
-            put.upload_device(dev_id)
+            mp = Mapper()
+            success = mp.do_automatic_rgb_calibration_mapping(device[0])
+            if not success:
+                print("Auto failed, doing manual")
+                get.download_device(dev_id)
+                cal.cal_device(dev_id)
+                put.upload_device(dev_id)
     print("Reviewing parallax...")
     check.main()
     print("Performing QA...")

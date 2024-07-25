@@ -16,42 +16,33 @@ def filter_by_date(device_list, months=(1, 12), days=(1, 31)):
     devices_per_day = {}
     filtered_devices = []
     for m in month_range:
+        if m>12:
+            break
         for d in day_range:
             if (d == 31 and m in (4, 6, 9, 11)) or (d == 30 and m == 2):
                 break
             key = f"{str(m):0>2}/{str(d):0>2}"
             devices_per_day[key] = 0
-    for d in device_list:
-        date = d["LastModified"].date()
+    for dev in device_list:
+        date = dev["LastModified"].date()
         if date.month in month_range and date.day in day_range:
-            filtered_devices.append(d)
+            filtered_devices.append(dev)
             key = f"{str(date.month):0>2}/{str(date.day):0>2}"
-            if key in devices_per_day.keys():
-                devices_per_day[key] += 1
-            else:
-                devices_per_day[key] = 1
+            devices_per_day[key] += 1
     return filtered_devices, devices_per_day
 
 
 def get_devices():
-    S3_BUCKET = "kcam-calibration-data"
     s3_paginator = boto3.client('s3').get_paginator('list_objects_v2')
-    operation_parameters = {'Bucket': S3_BUCKET}
-    page_iterator = s3_paginator.paginate(**operation_parameters)
+    page_iterator = s3_paginator.paginate(Bucket="kcam-calibration-data")
     print("Finding S3 keys...")
-    output = list()
-    for i, page in enumerate(page_iterator):
-        for j, record in enumerate(page["Contents"]):
-            output.append(record)
+    output = [record for page in page_iterator for record in page["Contents"]]
     df_out = pd.DataFrame(output)
-    fn_out = "kcam-calibration-data-keys.csv"
-    df_out.to_csv(fn_out)
+    df_out.to_csv("kcam-calibration-data-keys.csv")
     return output
 
 def filter_devices(devices):
     unique_devices = [d for d in devices if d['Key'][-10:] == '6_inch.png' and d["LastModified"].date().year == 2024]
-    filtered_devices = []
-    devices_per_day = {}
     month_range = ()
 
     while month_range != (0,):
@@ -67,11 +58,13 @@ def filter_devices(devices):
             continue
 
         filtered_devices, devices_per_day = filter_by_date(unique_devices, month_range, day_range)
-        for month_day, count in dict(sorted(devices_per_day.items())).items():
-            print(f"{month_day}:\t{count}")
-        devices_per_day = {}
-        print("Total devices:", len(filtered_devices))
-        filtered_devices = []
+        print_result(filtered_devices, devices_per_day)
+        
+
+def print_result(filtered_devices, devices_per_day):
+    for month_day, count in dict(sorted(devices_per_day.items())).items():
+        print(f"{month_day}:\t{count}")
+    print("Total devices:", len(filtered_devices))
 
 def main():
     filter_devices(get_devices())

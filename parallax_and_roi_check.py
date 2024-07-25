@@ -136,11 +136,11 @@ class ROIChecker:
         return np.count_nonzero(masked_roi_check) >= 50
     
     def pad_image(self, rgb_img):
+        rgb_img = np.asarray(rgb_img.rotate(180))
         img_padded = np.zeros((520, 440)).astype(np.uint8)
         if self.device_type == '_mosaic':
-            img_padded[100 - self.y_trans:420 - self.y_trans, 100 + self.x_trans:340 + self.x_trans] = np.asarray(rgb_img.rotate(180))[:,:,0]
-        else:
-            img_padded[100 - self.y_trans:420 - self.y_trans, 100 + self.x_trans:340 + self.x_trans] = np.asarray(rgb_img.rotate(180))
+            rgb_img = rgb_img[:,:,0]*1.3
+        img_padded[100 - self.y_trans:420 - self.y_trans, 100 + self.x_trans:340 + self.x_trans] = rgb_img
         return img_padded
 
     def update_plot(self):
@@ -152,7 +152,6 @@ class ROIChecker:
             if self.show_plot:
                 self.axs[port].clear()
                 rgb_img = self.images[port]
-            # Plot ROIs with new translation
             cidx = 0
             for rois in self.device_rois[port]:
                 for roi in rois:
@@ -175,7 +174,6 @@ class ROIChecker:
 
                 self.axs[port].set_title("Port " + str(port))
                 self.axs[port].imshow(rgb_img, cmap='gray')
-                # self.axs[port].imshow(rgb_img[20:500,20:420], cmap='gray')
                 self.axs[port].axis('off')
 
         print(fail_ct)

@@ -10,7 +10,7 @@ from matplotlib.cm import ScalarMappable
 from s3_setup import S3Setup
 
 
-from s3_setup import setup_s3
+from s3_setup import S3Setup
 
 
 def vector_plot(magnitude, angle_degrees, color='black', zorder=10):
@@ -49,7 +49,7 @@ def get_vector(device_id):
     except FileNotFoundError:
         try:
             key = f'{device_id}/calculated_transformations2/{device_id}/mapped_mask_matrix_hydra_{device_id}.npy'
-            ensure_path_exists(key)
+            # ensure_path_exists(key)
             s3client.download_file(Bucket=bucket_name,
                                    Key=f'{device_id}/calculated_transformations/{device_id}/mapped_mask_matrix_hydra_{device_id}.npy',
                                    Filename=os.path.join(local_directory, device_id,
@@ -97,9 +97,8 @@ global s3client
 s3c = S3Setup()
 s3client, bucket_name = s3c()
 
-fig, ax = plt.subplots(1, 1)
+fig, ax = plt.subplots()
 vectors = np.genfromtxt("Test_vec_integrated.csv", delimiter=",", skip_header=1, dtype='<U25')
-label = ''
 bin_ct = 15
 integ_outside = new_outside = 0
 xs = []

@@ -36,7 +36,7 @@ def main():
     if show_plot:
         counts, edges, bars = plt.hist(failures, bins=15, edgecolor='black')
         plt.bar_label(bars)
-        plt.show()
+        # plt.show()
 
         
 class ROIChecker:
@@ -128,6 +128,7 @@ class ROIChecker:
     def sliders_on_changed(self, _):
         self.x_trans = self.x_slider.val
         self.y_trans = self.y_slider.val
+        self.check_rois()
         self.update_plot()
 
     def roi_pass(self, roi):
@@ -146,8 +147,6 @@ class ROIChecker:
     def check_rois(self):
         self.roi_color = []
         fail_ct = 0
-        # self.x_trans = self.therm_x-rgb_cen[0]  # to center rgb with thermal
-        # self.y_trans = rgb_cen[1]-self.therm_y  # "
         for port in range(self.num_ports):                
             cidx = 0
             for rois in self.device_rois[port]:
@@ -158,39 +157,38 @@ class ROIChecker:
                     else:
                         self.roi_color.append((cidx % 8, roi_x, roi_y))
                         fail_ct += 1
-
                 cidx += 1
         print(fail_ct)
         self.failures.append(fail_ct)
 
 
     def update_plot(self):
-        rgb_cen = (220, 260)
         for port in range(self.num_ports):
-            # if self.show_plot:
-                self.axs[port].clear()
-                rgb_img = self.images[port]
-                cv2.drawContours(rgb_img, self.mask_edges_contours, -1, (255, 255, 255), 1)
+            self.axs[port].clear()
+            rgb_img = self.images[port]
+            cv2.drawContours(rgb_img, self.mask_edges_contours, -1, (255, 255, 255), 1)
 
-                self.axs[port].plot(self.therm_x, self.therm_y, 'o', markersize=10, color='magenta', zorder=8888)
-                self.axs[port].plot([rgb_cen[0], self.therm_x], [rgb_cen[1], self.therm_y], markersize=5, color='black', zorder=9999)
-                self.axs[port].plot(rgb_cen[0] + self.x_trans, rgb_cen[1] - self.y_trans, 'o', markersize=10, color='orange', zorder=8888)
+            self.axs[port].plot(self.therm_x, self.therm_y, 'o', markersize=10, color='magenta', zorder=8888)
+            self.axs[port].plot([self.rgb_cen[0], self.therm_x], [self.rgb_cen[1], self.therm_y], markersize=5, color='red', zorder=9999)
+            self.axs[port].plot(self.rgb_cen[0] + self.x_trans, self.rgb_cen[1] - self.y_trans, 'o', markersize=10, color='orange', zorder=8888)
 
-                self.axs[port].set_title("Port " + str(port))
-                self.axs[port].imshow(rgb_img, cmap='gray')
-                self.axs[port].axis('off')
-        for roi in self.roi_color:
-            
-            self.axs[port].plot(roi[1], roi[2], 'o', color=self.colors[roi[0]], markersize=5, zorder=9999)
+            self.axs[port].set_title("Port " + str(port))
+            self.axs[port].imshow(rgb_img, cmap='gray')
+            self.axs[port].axis('off')
+            for roi in self.roi_color:
+                self.axs[port].plot(roi[1], roi[2], 'o', color=self.colors[roi[0]], markersize=5, zorder=roi[0]+5)
         self.fig.canvas.draw_idle()
 
     def initialize_plot(self):
         self.x_trans = self.y_trans = 0
+        self.therm_x = statistics.mean(np.nonzero(self.mask_map)[1])
+        self.therm_y = statistics.mean(np.nonzero(self.mask_map)[0])
+        self.rgb_cen = (220, 260)
+        self.x_trans = self.therm_x-self.rgb_cen[0]  # to center rgb with thermal
+        self.y_trans = self.rgb_cen[1]-self.therm_y  # "
         self.check_rois()
 
         if self.show_plot:
-            self.therm_x = statistics.mean(np.nonzero(self.mask_map)[1])
-            self.therm_y = statistics.mean(np.nonzero(self.mask_map)[0])
             self.colors = ['brown', 'cyan', 'magenta', 'blue', 'green', 'yellow', 'orange', 'red', 'lightgrey']
             self.fig, self.axs = plt.subplots(1, self.num_ports)
             self.fig.suptitle(str(self.i + 1) + ": " + self.device_id)

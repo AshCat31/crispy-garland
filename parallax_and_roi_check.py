@@ -31,12 +31,12 @@ def main():
         rc = ROIChecker(device_id, i, s3client, bucket_name, failures, show_plot)
         rc.start()
 
-    if len(failures) > 0:
-        print("Avg failures:", statistics.mean(failures))
-        if show_plot:
-            counts, edges, bars = plt.hist(failures, bins=15, edgecolor='black')
-            plt.bar_label(bars)
-            plt.show()
+    # if len(failures) > 0:
+    # print("Avg failures:", statistics.mean(failures))
+    if show_plot:
+        counts, edges, bars = plt.hist(failures, bins=15, edgecolor='black')
+        plt.bar_label(bars)
+        plt.show()
 
         
 class ROIChecker:
@@ -143,29 +143,33 @@ class ROIChecker:
         img_padded[100 - self.y_trans:420 - self.y_trans, 100 + self.x_trans:340 + self.x_trans] = rgb_img
         return img_padded
 
-    def update_plot(self):
-        rgb_cen = (220, 260)
+    def check_rois(self):
+        self.roi_color = []
         fail_ct = 0
         # self.x_trans = self.therm_x-rgb_cen[0]  # to center rgb with thermal
         # self.y_trans = rgb_cen[1]-self.therm_y  # "
-        for port in range(self.num_ports):
-            if self.show_plot:
-                self.axs[port].clear()
-                rgb_img = self.images[port]
+        for port in range(self.num_ports):                
             cidx = 0
             for rois in self.device_rois[port]:
                 for roi in rois:
                     roi_x, roi_y = self.WIDTH + self.x_trans - roi[:, :, 0], self.HEIGHT - self.y_trans - roi[:, :, 1]
                     if self.roi_pass(roi):
-                        if self.show_plot:
-                            self.axs[port].plot(roi_x, roi_y, 'o', color="lightgrey", markersize=5)
+                        self.roi_color.append((-1, roi_x, roi_y))
                     else:
-                        if self.show_plot:
-                            self.axs[port].plot(roi_x, roi_y, 'o', color=self.colors[cidx % 8], markersize=5, zorder=9999)
+                        self.roi_color.append((cidx % 8, roi_x, roi_y))
                         fail_ct += 1
 
                 cidx += 1
-            if self.show_plot:
+        print(fail_ct)
+        self.failures.append(fail_ct)
+
+
+    def update_plot(self):
+        rgb_cen = (220, 260)
+        for port in range(self.num_ports):
+            # if self.show_plot:
+                self.axs[port].clear()
+                rgb_img = self.images[port]
                 cv2.drawContours(rgb_img, self.mask_edges_contours, -1, (255, 255, 255), 1)
 
                 self.axs[port].plot(self.therm_x, self.therm_y, 'o', markersize=10, color='magenta', zorder=8888)
@@ -175,18 +179,19 @@ class ROIChecker:
                 self.axs[port].set_title("Port " + str(port))
                 self.axs[port].imshow(rgb_img, cmap='gray')
                 self.axs[port].axis('off')
-
-        print(fail_ct)
-        self.failures.append(fail_ct)
-        if self.show_plot:
-            self.fig.canvas.draw_idle()
+        for roi in self.roi_color:
+            
+            self.axs[port].plot(roi[1], roi[2], 'o', color=self.colors[roi[0]], markersize=5, zorder=9999)
+        self.fig.canvas.draw_idle()
 
     def initialize_plot(self):
         self.x_trans = self.y_trans = 0
+        self.check_rois()
+
         if self.show_plot:
             self.therm_x = statistics.mean(np.nonzero(self.mask_map)[1])
             self.therm_y = statistics.mean(np.nonzero(self.mask_map)[0])
-            self.colors = ['brown', 'cyan', 'magenta', 'blue', 'green', 'yellow', 'orange', 'red']
+            self.colors = ['brown', 'cyan', 'magenta', 'blue', 'green', 'yellow', 'orange', 'red', 'lightgrey']
             self.fig, self.axs = plt.subplots(1, self.num_ports)
             self.fig.suptitle(str(self.i + 1) + ": " + self.device_id)
             if self.device_type != '_hydra':
@@ -200,11 +205,12 @@ class ROIChecker:
                                 orientation="vertical")
             self.x_slider.on_changed(self.sliders_on_changed)
             self.y_slider.on_changed(self.sliders_on_changed)
+            self.update_plot()
+
 
         # Update with initial data
-        self.update_plot()
 
-        if self.show_plot:
+        # if self.show_plot:
             self.fig.canvas.manager.window.wm_geometry("+0+0")
             self.fig.canvas.manager.window.geometry("1910x1000")
             plt.subplots_adjust(wspace=0, hspace=0.01, bottom=0, top=0.95, left=.05, right=.98)

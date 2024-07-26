@@ -29,7 +29,7 @@ def main():
             device_list.append(line.split()[0])
     for i, device_id in enumerate(device_list):
         rc = ROIChecker(device_id, i, s3client, bucket_name, failures, show_plot)
-        failures.append(rc.start())
+        failures.append(rc.find_failures())
 
     # if len(failures) > 0:
     # print("Avg failures:", statistics.mean(failures))
@@ -92,7 +92,7 @@ class ROIChecker:
         self.device_rois = []
         self.images = []
 
-    def start(self):
+    def find_failures(self):
         try:
             self.get_mask("2")
         except Exception as e:
@@ -111,13 +111,17 @@ class ROIChecker:
                 port_rois.append(rois)
             self.device_rois.append(port_rois)
 
-        self.initialize_plot()
+        self.setup()
+        self.check_rois()
+        if self.show_plot:
+            self.initialize_plot()
+
         return self.failures
 
     def get_mask(self, ct):
         key = f'{self.device_id}/calculated_transformations{ct}/{self.device_id}/mapped_mask_matrix{self.device_type}_{self.device_id}.npy'
         local_directory = '/home/canyon/S3bucket/'
-        try:
+        try:  # checking first is slower
             self.mask_map = np.load(os.path.join(local_directory, key)).astype(np.uint8) * 255
         except FileNotFoundError:
             os.makedirs(os.path.join(local_directory, f'{self.device_id}/calculated_transformations{ct}/{self.device_id}'))
@@ -172,35 +176,32 @@ class ROIChecker:
             self.axs[roi[3]].plot(roi[1], roi[2], 'o', color=self.colors[roi[0]], markersize=5, zorder=roi[0]+5)
         self.fig.canvas.draw_idle()
 
-    def initialize_plot(self):
+    def setup(self):
         self.x_trans = self.y_trans = 0
         self.therm_x = statistics.mean(np.nonzero(self.mask_map)[1])
         self.therm_y = statistics.mean(np.nonzero(self.mask_map)[0])
         self.rgb_cen = (220, 260)
         # self.x_trans = self.therm_x-self.rgb_cen[0]  # to center rgb with thermal
         # self.y_trans = self.rgb_cen[1]-self.therm_y  # "
-        self.check_rois()
 
-        if self.show_plot:
-            self.colors = ['brown', 'cyan', 'magenta', 'blue', 'green', 'yellow', 'orange', 'red', 'lightgrey']
-            self.fig, self.axs = plt.subplots(1, self.num_ports)
-            self.fig.suptitle(str(self.i + 1) + ": " + self.device_id)
-            if self.device_type != '_hydra':
-                    self.axs = [self.axs]
-            axis_color = "grey"
-            slider_min, slider_max = -50, 50
-            x_slider_ax = self.fig.add_axes([0.1, 0.05, 0.8, 0.03], facecolor=axis_color)
-            self.x_slider = plt.Slider(x_slider_ax, 'x', slider_min, slider_max, valinit=self.x_trans, valstep=1)
-            y_slider_ax = self.fig.add_axes([0.03, 0.1, 0.03, 0.8], facecolor=axis_color)
-            self.y_slider = plt.Slider(y_slider_ax, 'y', slider_min, slider_max, valinit=self.y_trans, valstep=1,
-                                orientation="vertical")
-            self.x_slider.on_changed(self.sliders_on_changed)
-            self.y_slider.on_changed(self.sliders_on_changed)
-            self.update_plot()
-            self.fig.canvas.manager.window.wm_geometry("+0+0")
-            self.fig.canvas.manager.window.geometry("1910x1000")
-            plt.subplots_adjust(wspace=0, hspace=0.01, bottom=0, top=0.95, left=.05, right=.98)
-            plt.show()
+    def initialize_plot(self):
+        self.colors = ['brown', 'cyan', 'magenta', 'blue', 'green', 'yellow', 'orange', 'red', 'lightgrey']
+        self.fig, self.axs = plt.subplots(1, self.num_ports)
+        self.fig.suptitle(str(self.i + 1) + ": " + self.device_id)
+        if self.device_type != '_hydra':
+                self.axs = [self.axs]
+        slider_min, slider_max = -50, 50
+        x_slider_ax = self.fig.add_axes([0.1, 0.05, 0.8, 0.03])
+        self.x_slider = plt.Slider(x_slider_ax, 'x', slider_min, slider_max, valinit=self.x_trans, valstep=1)
+        y_slider_ax = self.fig.add_axes([0.03, 0.1, 0.03, 0.8])
+        self.y_slider = plt.Slider(y_slider_ax, 'y', slider_min, slider_max, valinit=self.y_trans, valstep=1, orientation="vertical")
+        self.x_slider.on_changed(self.sliders_on_changed)
+        self.y_slider.on_changed(self.sliders_on_changed)
+        self.update_plot()
+        self.fig.canvas.manager.window.wm_geometry("+0+0")
+        self.fig.canvas.manager.window.geometry("1910x1000")
+        plt.subplots_adjust(wspace=0, hspace=0.01, bottom=0, top=0.95, left=.05, right=.98)
+        plt.show()
 
 
 if __name__ == "__main__":

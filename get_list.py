@@ -5,7 +5,7 @@ import pandas as pd
 def get_date_range(input_str):
     while True:
         try:
-            return tuple([int(d) for d in input(input_str).split("-")])
+            return tuple([int(d) for d in input(input_str+"\n").split("-")])
         except ValueError:
             print("Invalid input.")
 
@@ -46,13 +46,13 @@ def filter_devices(devices):
     month_range = ()
 
     while month_range != (0,):
-        month_range = get_date_range("Enter range of months, ex 1-2 for Jan-Feb, 3 for just March, or 0 to quit\n")
+        month_range = get_date_range("Enter range of months, ex 1-2 for Jan-Feb, 3 for just March, or 0 to quit")
         if month_range == (0,):
             break
         elif len(month_range) == 2:
             day_range = (1, 31)
         elif len(month_range) == 1:
-            day_range = get_date_range("Enter range of dates, ex 10-15 or 4\n")
+            day_range = get_date_range("Enter range of dates, ex 10-15 or 4")
         else:
             print("Invalid input")
             continue
@@ -66,8 +66,6 @@ def print_result(filtered_devices, devices_per_day):
         print(f"{month_day}:\t{count}")
     print("Total devices:", len(filtered_devices))
 
-def main():
-    filter_devices(get_devices())
 
 if __name__ == "__main__":
-    main()
+    filter_devices(get_devices())

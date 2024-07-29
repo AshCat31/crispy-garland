@@ -44,6 +44,7 @@ class Mapper:
 
     def on_key_press(self, event):
         """Handles manual review's image interaction"""
+        print(event.key)
         self.review_input = event.key.upper() == 'Y'
         plt.close()
 
@@ -113,7 +114,7 @@ class Mapper:
         start_col3 = 0
         end_col3 = width // 3
 
-        start_row4 = 4 * height // 5  # GO BACK TO QUARTER
+        start_row4 = 3 * height // 4  # GO BACK TO QUARTER
         end_row4 = height
         start_col4 = 4 * width // 5
         end_col4 = width
@@ -340,7 +341,7 @@ if __name__ == "__main__":
         for line in reader.split("\n"):
             deviceList.append(line.split())
         for row in deviceList:
-            print(f'---{"---".join(row)}----')
+            print(f'--- {" --- ".join(row)} ----')
             success = mp.do_automatic_rgb_calibration_mapping(row[0])
             print(success)
         print(mp.errors)

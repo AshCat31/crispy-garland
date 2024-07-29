@@ -23,7 +23,7 @@ def main():
     doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
     s3c = S3Setup()
     s3client, bucket_name = s3c()
-    show_plot = True
+    show_plot = False
     with open(doc_path, 'r') as file:
         for line in file:
             device_list.append(line.split()[0])

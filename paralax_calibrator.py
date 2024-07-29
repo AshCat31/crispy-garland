@@ -20,8 +20,6 @@ __copyright__ = """
 import logging
 import math
 import os
-# Ignore DeprecationWarning:
-import warnings
 
 import cv2
 import matplotlib.image as mpimg
@@ -29,6 +27,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from numpy.linalg import inv
 
+# Ignore DeprecationWarning:
+import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 

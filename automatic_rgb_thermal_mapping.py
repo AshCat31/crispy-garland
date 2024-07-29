@@ -7,14 +7,15 @@ import matplotlib.pyplot as plt
 
 from paralax_calibrator import ParalaxCalibrator
 
-from automatic_point_detection import auto_point_detection
+from automatic_point_detection import auto_point_detection as apd
 from rgb_thermal_mapping_utils import generate_debug_image
 
 from s3_utils import *
+from s3_setup import S3Setup
 
 
 class Mapper:
-    def __init__(self, s3client=None, bucket_name=None):
+    def __init__(self):
         self.IMAGE_SIZE = (240, 320)
         self.CALIBRATION_POINTS_LENGTH = 9
         self.JSON_DEVICE_TYPE = 'device_type'
@@ -24,23 +25,7 @@ class Mapper:
         self.HUB_MOSAIC_NAME = "mosaic"
         self.MAX_PERIMETER_DIFFERENCE = 500
         self.errors = []
-
-        # Setup boto3
-        cred = boto3.Session().get_credentials()
-        ACCESS_KEY = cred.access_key
-        SECRET_KEY = cred.secret_key
-        SESSION_TOKEN = cred.token
-
-        if s3client is None:
-            self.s3client = boto3.client('s3',
-                                aws_access_key_id=ACCESS_KEY,
-                                aws_secret_access_key=SECRET_KEY,
-                                aws_session_token=SESSION_TOKEN,
-                                )
-            self.BUCKET_NAME = 'kcam-calibration-data'
-        else:
-            self.s3client = s3client
-            self.BUCKET_NAME = bucket_name
+        self.s3client, self.BUCKET_NAME = S3Setup()()
 
     def on_key_press(self, event):
         """Handles manual review's image interaction"""
@@ -55,27 +40,18 @@ class Mapper:
         ax = fig.add_subplot(111)
         ax.set_title(f'Y for passing {device_id}')
         manager = fig.canvas.manager
-        if manager is not None:
-            try:
-                manager.window.wm_geometry(f"+{1100}+{0}")
-            except Exception as e:
-                print(f"Error setting window position: {e}")
-        ax.imshow(image, cmap='grey')
+        manager.window.wm_geometry(f"+{1100}+{0}")
+        ax.imshow(image)
         fig.canvas.mpl_connect('key_press_event', self.on_key_press)
         plt.show()
 
-    def validate_calibration_points(self, calibration_points: str):
+    def validate_points(self, calibration_points: str):
         """Check if number of calibration points is correct"""
         return len(calibration_points) == self.CALIBRATION_POINTS_LENGTH
 
-
     def validate_mask_matrix(self, mask_matrix):
         """Check if mask matrix is correct by checking if there is only one shape"""
-        mask_8u = np.uint8(mask_matrix)
-
-        contours, _ = cv2.findContours(
-            mask_8u, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
+        contours, _ = cv2.findContours(np.uint8(mask_matrix), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if len(contours) == 1:
             cnt = contours[0]
             perimeter = cv2.arcLength(cnt, True)
@@ -83,11 +59,9 @@ class Mapper:
             hull_perimeter = cv2.arcLength(hull, True)
             perimeter_difference = perimeter - hull_perimeter
             return perimeter_difference < self.MAX_PERIMETER_DIFFERENCE
-
         return False
 
-
-    def convert_coordinates_to_numpy_array(self, coordinates: list[(int, int)]):
+    def coords_to_array(self, coordinates: list[(int, int)]):
         """Convert normal list to numpy array"""
         numpy_arr = np.zeros((len(coordinates), 2))
         for i, (x, y) in enumerate(coordinates):
@@ -98,7 +72,6 @@ class Mapper:
     def brighten_corner(self, image_array):
         height, width = image_array.shape[:2]
 
-        # Calculate boundaries for each corner
         start_row1 = 0
         end_row1 = height // 3
         start_col1 = 0
@@ -166,7 +139,6 @@ class Mapper:
         for i in range(num_sections):
             for j in range(num_sections):
                 if (i,j) == (1,1):
-                    # continue
                     pass
                 contrast_factor = 1.3  # Adjust as needed
                 start_row = i * section_height
@@ -174,24 +146,16 @@ class Mapper:
                 start_col = j * section_width
                 end_col = start_col + section_width
                 section = image_array[start_row:end_row, start_col:end_col]
-
-                min_brightness = np.min(section)
-                max_brightness = np.max(section)
-
+                min_brightness, max_brightness = np.min(section),  np.max(section)
                 normalized_section = (section - min_brightness) / (max_brightness - min_brightness)
-
                 # Adjust contrast in the section using a contrast factor
                 adjusted_section = (normalized_section - 0.5) * contrast_factor + 0.5
-
                 # Denormalize the section back to the original brightness range
                 adjusted_section = adjusted_section * (max_brightness - min_brightness) + min_brightness
-
                 # Clip values to ensure they are within [0, 255]
                 brightened_section = np.clip(adjusted_section, 0, 255).astype(np.uint8)
-
                 # Replace the section in the brightened image
                 brightened_image[start_row:end_row, start_col:end_col] = brightened_section
-
         return brightened_image
 
     def brighten_from_center(self, image):
@@ -201,8 +165,7 @@ class Mapper:
         distances = np.sqrt((x_coords - center_x)**2 + (y_coords - center_y)**2)
         normalized_distances = distances / np.max(distances)
         brighter_image = image + (50*(normalized_distances.transpose())).astype(np.uint8)
-        brighter_image = np.clip(brighter_image, 0, 255)
-        return brighter_image
+        return np.clip(brighter_image, 0, 255)
     
     def darken_in_center(self, image):
         center_x = image.shape[0] // 2
@@ -210,25 +173,21 @@ class Mapper:
         x_coords, y_coords = np.meshgrid(np.arange(image.shape[0]), np.arange(image.shape[1]))
         distances = np.sqrt((x_coords - center_x)**2 + (y_coords - center_y)**2)
         normalized_distances = distances / np.max(distances)
-        normalized_image = image / 255.0
+        normalized_image = image / 255
         brightness_factor = 0.5 + 1.7 * normalized_distances  # Adjust the weights as desired
-        adjusted_image = normalized_image * brightness_factor.transpose()
-        adjusted_image = adjusted_image * 255.0
+        adjusted_image = (normalized_image * brightness_factor.transpose()) * 255
         adjusted_image = np.clip(adjusted_image, 0, 255).astype(np.uint8)
         return adjusted_image
 
     def contrast(self, image):
-        normalized_image = image / 255.0
+        normalized_image = image / 255
         contrast_factor = 1.2  # adjust as needed
-        adjusted_image = (normalized_image - 0.5) * contrast_factor + 0.5
-        adjusted_image = adjusted_image * 255.0
-        adjusted_image = np.clip(adjusted_image, 0, 255).astype(np.uint8)
-        return adjusted_image
+        adjusted_image = ((normalized_image - 0.5) * contrast_factor + 0.5) * 255
+        return np.clip(adjusted_image, 0, 255).astype(np.uint8)
 
-    def do_automatic_rgb_calibration_mapping(self, device_id, debug_mode=True, overwrite=True):
+    def do_automatic_rgb_calibration_mapping(self, device_id, debug_mode=False, overwrite=True):
         """Do automatic calibration mapping and send results to s3"""
-        basePath = os.path.join("/home/canyon/S3bucket/", device_id)
-        folder_path = basePath
+        folder_path = os.path.join("/home/canyon/S3bucket/", device_id)
         rgb_coordinates_file_path = folder_path + '/rgb_' + device_id + '_9element_coord.npy'
         trml_coordinates_file_path = folder_path + '/trml_' + device_id + '_9element_coord.npy'
         device_type, device_idx = get_device_type_and_idx(device_id)
@@ -241,50 +200,36 @@ class Mapper:
         rgb_image = load_rgb_image_from_s3(f'{device_id}/6_inch.png')
         gray_rgb_image = cv2.cvtColor(rgb_image, cv2.COLOR_BGR2GRAY)
 
-        is_hydra = device_type == self.HYDRA_DEVICE_NAME
-        thermal_coordinates, _, _ = auto_point_detection.find_calibration_points_on_heatmap(
-            thermal_image, is_hydra=is_hydra)
-        rgb_coordinates, _, _ = auto_point_detection.find_calibration_points_on_rgb_photo(
-            gray_rgb_image)
+        thermal_coordinates, _, _ = apd.find_calibration_points_on_heatmap(thermal_image, device_type == self.HYDRA_DEVICE_NAME)
+        rgb_coordinates, _, _ = apd.find_calibration_points_on_rgb_photo(gray_rgb_image)
 
-        if self.validate_calibration_points(rgb_coordinates) and (overwrite or not os.path.isfile(rgb_coordinates_file_path)):
+        if self.validate_points(rgb_coordinates) and (overwrite or not os.path.isfile(rgb_coordinates_file_path)):
             debug_rgb_image = rgb_image.copy()
             for x, y in rgb_coordinates:
                 cv2.circle(debug_rgb_image, (int(x), int(y)), 0, (255, 0, 0), 10)
             self.see_image(debug_rgb_image, device_id)
             calibration_success = self.review_input
             if calibration_success:
-                write_numpy_to_s3(
-                    f"{device_id}/rgb_{device_id}_9element_coord.npy", rgb_coordinates)
-            # else:  # enable to not do both if one's bad
-            #     return calibration_success
-        if self.validate_calibration_points(thermal_coordinates) and (overwrite or not os.path.isfile(trml_coordinates_file_path)):
+                write_numpy_to_s3(f"{device_id}/rgb_{device_idx}_9element_coord.npy", rgb_coordinates)
+        if self.validate_points(thermal_coordinates) and (overwrite or not os.path.isfile(trml_coordinates_file_path)):
             debug_thermal_image = thermal_image.copy()
-        
             if debug_thermal_image.ndim != 3:
-                debug_thermal_image = cv2.cvtColor(
-                    debug_thermal_image, cv2.COLOR_GRAY2RGB)
-        
+                debug_thermal_image = cv2.cvtColor(debug_thermal_image, cv2.COLOR_GRAY2RGB)
             for x, y in thermal_coordinates:
                 cv2.circle(debug_thermal_image, (int(x), int(y)), 0, (255, 0, 0), 10)
-        
-            debug_image = np.concatenate(
-                (debug_thermal_image), axis=1)
             self.see_image(debug_thermal_image, device_id)
             calibration_success = self.review_input
             if calibration_success:
-                write_numpy_to_s3(
-                    f"{device_id}/trml_{device_id}_9element_coord.npy", thermal_coordinates)
+                write_numpy_to_s3(f"{device_id}/trml_{device_idx}_9element_coord.npy", thermal_coordinates)
             else:
                 return calibration_success
         else:
             mask_matrix = np.zeros(self.IMAGE_SIZE)
-        if not (self.validate_calibration_points(thermal_coordinates) and self.validate_calibration_points(rgb_coordinates)):
+        if not (self.validate_points(thermal_coordinates) and self.validate_points(rgb_coordinates)):
             return calibration_success
 
-        thermal_coordinates = convert_coordinates_to_numpy_array(
-            thermal_coordinates)
-        rgb_coordinates = convert_coordinates_to_numpy_array(rgb_coordinates)
+        thermal_coordinates = coords_to_array(thermal_coordinates)
+        rgb_coordinates = coords_to_array(rgb_coordinates)
         parallax_calibrator = ParalaxCalibrator()
         mask_matrix, coordinate_map, sensitivity_matrix = parallax_calibrator(
             thermal_image,
@@ -292,41 +237,21 @@ class Mapper:
             thermal_coordinates,
             rgb_coordinates
         )
-        if self.validate_mask_matrix(mask_matrix):
-            directory = f"{device_id}/calculated_transformations/{device_id}"
-            calibration_success = True
+        calibration_success = self.validate_mask_matrix(mask_matrix)
+        if calibration_success:
             if not debug_mode:
-                write_numpy_to_s3(
-                    f"{directory}/mapped_coordinates_matrix_{device_type}_{device_idx}.npy", coordinate_map)
-                write_numpy_to_s3(
-                    f"{directory}/mapped_mask_matrix_{device_type}_{device_idx}.npy", mask_matrix)
-                write_numpy_to_s3(
-                    f"{directory}/sensitivity_correction_matrix_{device_type}_{device_idx}.npy", sensitivity_matrix)
-                write_numpy_to_s3(
-                    f"{device_id}/trml_{device_idx}_9element_coord.npy", thermal_coordinates)
-                write_numpy_to_s3(
-                    f"{device_id}/rgb_{device_idx}_9element_coord.npy", rgb_coordinates)
-        debug_image = generate_debug_image(
-            thermal_image, thermal_coordinates, rgb_image, rgb_coordinates, mask_matrix)
-
-        if debug_mode and calibration_success:
-            write_image_to_s3(f"{device_id}/debug_image.png", debug_image)
-            update_data_json_on_s3(device_id, [("auto_cal", calibration_success)])
-            write_numpy_to_s3(
-                f"{directory}/mapped_coordinates_matrix_{device_type}_{device_idx}.npy", coordinate_map)
-            write_numpy_to_s3(
-                f"{directory}/mapped_mask_matrix_{device_type}_{device_idx}.npy", mask_matrix)
-            write_numpy_to_s3(
-                f"{directory}/sensitivity_correction_matrix_{device_type}_{device_idx}.npy", sensitivity_matrix)
-            write_numpy_to_s3(
-                f"{device_id}/trml_{device_idx}_9element_coord.npy", thermal_coordinates)
-            write_numpy_to_s3(
-                f"{device_id}/rgb_{device_idx}_9element_coord.npy", rgb_coordinates)
+                directory = f"{device_id}/calculated_transformations/{device_idx}/"
+                suffix = f"_matrix_{device_type}_{device_idx}.npy"
+                write_numpy_to_s3(f"{directory}mapped_coordinates{suffix}", coordinate_map)
+                write_numpy_to_s3(f"{directory}mapped_mask{suffix}", mask_matrix)
+                write_numpy_to_s3(f"{directory}sensitivity_correction{suffix}", sensitivity_matrix)
         else:
+            self.errors.append(device_id)
+                
+        if debug_mode:
+            debug_image = generate_debug_image(thermal_image, thermal_coordinates, rgb_image, rgb_coordinates, mask_matrix)
             write_image_to_s3(f"{device_id}/debug_image.png", debug_image)
             update_data_json_on_s3(device_id, [("auto_cal", calibration_success)])
-        if not calibration_success:
-            self.errors.append(device_id)
         return calibration_success
 
 
@@ -335,7 +260,6 @@ if __name__ == "__main__":
     doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
     mp = Mapper()
     with open(doc_path) as csv_file:
-        # reader = csv.reader(csv_file, delimiter='\t')
         reader = csv_file.read()  # allows tabs and spaces
         deviceList = []
         for line in reader.split("\n"):

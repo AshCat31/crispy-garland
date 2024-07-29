@@ -5,7 +5,7 @@ import json
 import cv2
 import numpy as np
 
-import boto3
+from s3_setup import S3Setup
 
 IMAGE_SIZE = (240, 320)
 CALIBRATION_POINTS_LENGTH = 9
@@ -15,19 +15,8 @@ HYDRA_DEVICE_NAME = "hydra"
 HUB_DEVICE_NAME = "hub"
 HUB_MOSAIC_NAME = "mosaic"
 
-# Setup boto3
-cred = boto3.Session().get_credentials()
-ACCESS_KEY = cred.access_key
-SECRET_KEY = cred.secret_key
-SESSION_TOKEN = cred.token
-
-
-s3client = boto3.client('s3',
-                        aws_access_key_id=ACCESS_KEY,
-                        aws_secret_access_key=SECRET_KEY,
-                        aws_session_token=SESSION_TOKEN,
-                        )
-BUCKET_NAME = 'kcam-calibration-data'
+s3s = S3Setup()
+s3client, BUCKET_NAME = s3s()
 
 
 def get_file_from_s3(filename: str):
@@ -123,7 +112,7 @@ def update_data_json_on_s3(device_id, data_array):
     write_json_to_s3(filename, json_data)
 
 
-def convert_coordinates_to_numpy_array(coordinates: list[(int, int)]):
+def coords_to_array(coordinates: list[(int, int)]):
     """Convert normal list to numpy array"""
     numpy_arr = np.zeros((len(coordinates), 2))
     for i, (x, y) in enumerate(coordinates):

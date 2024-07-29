@@ -1,7 +1,0 @@
-__pycache__
-automatic_point_detection/generated_images/
-automatic_point_detection/thermal_tests_dataset/correct.txt
-automatic_point_detection/thermal_tests_dataset/errors.txt
-automatic_point_detection/thermal_tests_dataset/failures.txt
-trml_matrix_scaled.jpg
-numpy_files

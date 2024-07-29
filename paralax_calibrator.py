@@ -79,9 +79,15 @@ class ParalaxCalibrator:
 
         
         """
-        self.thermalImage = np.load(thermalImageLocation)
-        self.colorImage = mpimg.imread(colorImageLocation)
-
+        if type(thermalImageLocation) == str:
+            self.thermalImage = np.load(thermalImageLocation)
+        else:
+            self.thermalImage = thermalImageLocation
+        if type(colorImageLocation) == str:
+            self.colorImage = mpimg.imread(colorImageLocation)
+        else:
+            self.colorImage = colorImageLocation
+            
         if len(self.colorImage.shape) == 3:
             r, g, b = self.colorImage[:, :, 0], self.colorImage[:, :, 1], self.colorImage[:, :, 2]
             self.colorImage = 0.2989 * r + 0.5870 * g + 0.1140 * b

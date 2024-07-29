@@ -37,7 +37,6 @@ def get_file_from_s3(filename: str):
 def load_rgb_image_from_s3(filename: str):
     """Download rgb image from s3"""
     raw_image_bytes = get_file_from_s3(filename)
-
     raw_image_np_bytes = np.asarray(
         bytearray(raw_image_bytes.read()), dtype=np.uint8)
     rgb_image = cv2.imdecode(raw_image_np_bytes, cv2.IMREAD_COLOR)
@@ -49,22 +48,17 @@ def load_rgb_image_from_s3(filename: str):
 def load_numpy_array_from_s3(filename: str):
     """Download numpy array from s3"""
     raw_numpy_bytes = get_file_from_s3(filename)
-
     numpy_array = np.load(raw_numpy_bytes)
-
     return numpy_array
 
 
 def load_thermal_image_from_s3(device_id: str):
     """Download thermal image from s3"""
     thermal_image = load_numpy_array_from_s3(f'{device_id}/6_inch.npy')
-
     thermal_image = np.transpose(thermal_image)
-    thermal_image_scaled = cv2.resize(
-        thermal_image, IMAGE_SIZE, interpolation=cv2.INTER_CUBIC)
+    thermal_image_scaled = cv2.resize(thermal_image, IMAGE_SIZE, interpolation=cv2.INTER_CUBIC)
     thermal_image_scaled = np.array((thermal_image_scaled - np.min(thermal_image_scaled))/(
         np.max(thermal_image_scaled) - np.min(thermal_image_scaled))*255).astype(np.uint8)
-
     return thermal_image_scaled
 
 
@@ -79,7 +73,6 @@ def write_json_to_s3(filename, json_data):
     buffer_array = io.BytesIO()
     buffer_array.write(json.dumps(json_data).encode())
     buffer_array.seek(0)
-
     write_file_to_s3(filename, buffer_array)
 
 
@@ -105,10 +98,8 @@ def update_data_json_on_s3(device_id, data_array):
     """Write new entries or update existing in s3 data.json"""
     filename = f'{device_id}/data.json'
     json_data = load_json_from_s3(filename)
-
     for key, value in data_array:
         json_data[key] = value
-
     write_json_to_s3(filename, json_data)
 
 
@@ -136,7 +127,6 @@ def write_numpy_to_s3(filename, array):
     buffer_array = io.BytesIO()
     np.save(buffer_array, array)
     buffer_array.seek(0)
-
     write_file_to_s3(filename, buffer_array)
 
 

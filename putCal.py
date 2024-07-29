@@ -7,9 +7,7 @@ def upload_device(deviceId):
     print("Uploading", deviceId)
     output = os.system(
         f'aws s3 cp ~/S3bucket/{deviceId} s3://kcam-calibration-data/{deviceId} --recursive --only-show-errors')
-    if output != 0:
-        return False
-    return True
+    return output == 0
 
 
 def main():

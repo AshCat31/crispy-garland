@@ -790,7 +790,6 @@ def cal_device(dev_id):
 
 
 def save_sampled_coordinates(coord_arr, file_name):
-    # Saving the sampled coordinates
     np.save(file_name, coord_arr)
 
 

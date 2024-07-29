@@ -7,8 +7,7 @@ import numpy as np
 from matplotlib import patches
 from matplotlib.cm import ScalarMappable
 
-from s3_setup import S3Setup
-
+import random
 
 from s3_setup import S3Setup
 
@@ -111,8 +110,8 @@ for mag, ang, id, is_rma, bad_rois in vectors:
     else:
         vector_plot(float(mag), float(ang))
 c = np.asarray([int(i) for i in vectors[:, 4]])
-# for i in range(len(xs)):
-#     ax.scatter(xs[i], ys[i], s=90, c=c[i], cmap=cmap, norm=norm, zorder=-c[i])
+for i in range(len(xs)):
+    ax.scatter(xs[i]+random.randrange(1,50)/100, ys[i]+random.randrange(1,50)/100, s=90, c=c[i], zorder=-1000, alpha=.1)
 ax.set_aspect('equal')
 sorted_indices = np.argsort(c)
 sorted_xs = np.asarray(xs)[sorted_indices]
@@ -162,12 +161,9 @@ for dev_id in device_list:
         vector_plot(*vector, 'yellow', 9999)
         cidx += 1
 for i in range(len(new_xs)):
-    ax.scatter(new_xs[i], new_ys[i], s=90, c=c2[i], cmap=cmap, norm=norm, zorder=-c2[i])
+    ax.scatter(new_xs[i], new_ys[i], s=90, c=c2[i], cmap=cmap, norm=norm, zorder=-c2[i], alpha=.8)
 
 ax.set_aspect('equal')
-# Set the limits of the plot to be slightly larger than the vector
-# magnitude = np.max(vectors[:,0])
 ax.set_ylim(min(ys) - 15, max(ys) + 15)
 ax.set_xlim(min(xs) - 15, max(xs) + 15)
-# plt.legend()
 plt.show()

@@ -18,28 +18,12 @@ def vector_plot(magnitude, angle_degrees, color='black', zorder=10):
     y_component = magnitude * np.sin(angle_radians)
     if color == 'yellow':
         pass
-        # ax.plot(x_component, y_component, 'o', color=color, markersize=12, zorder=zorder)
     if color == 'black':
         xs.append(x_component)
         ys.append(y_component)
     elif color != 'red':
         new_xs.append(x_component)
         new_ys.append(y_component)
-    # xs.append(x_component)
-    # ys.append(y_component)
-    # def vector_plot(magnitude, angle_degrees, color='grey'):
-    # angle_radians = np.deg2rad(-angle_degrees+270)
-    # x_component = magnitude * np.cos(angle_radians)
-    # y_component = magnitude * np.sin(angle_radians)
-    # ax.arrow(0, 0, x_component, y_component, head_width=1, color=color, label=label)
-    # if color == 'grey':
-    #     color = 'black'
-    #     markersize=5
-    # else:
-    #     markersize = 10
-    # ax.plot(x_component, y_component, 'o', color=color, markersize=markersize)
-
-    # ax[2].annotate(int(angle_degrees+180), xy=(x_component, y_component), xytext=(x_component+0.1, y_component+0.1))
 
 
 def get_vector(device_id):
@@ -47,8 +31,6 @@ def get_vector(device_id):
         mask = np.load(os.path.join(local_directory, device_id, f'mapped_mask_matrix_hydra_{device_id}.npy'))
     except FileNotFoundError:
         try:
-            key = f'{device_id}/calculated_transformations2/{device_id}/mapped_mask_matrix_hydra_{device_id}.npy'
-            # ensure_path_exists(key)
             s3client.download_file(Bucket=bucket_name,
                                    Key=f'{device_id}/calculated_transformations/{device_id}/mapped_mask_matrix_hydra_{device_id}.npy',
                                    Filename=os.path.join(local_directory, device_id,
@@ -92,7 +74,6 @@ with open(doc_path, 'r') as file:
             c2.append(float(line.split()[1]))
         else: 
             raise ValueError("ROI failures not in file")
-global s3client
 s3c = S3Setup()
 s3client, bucket_name = s3c()
 
@@ -143,7 +124,7 @@ fit_ellipse(xs_lowest_third, ys_lowest_third, ax, 'green', 'Lowest 1/3', 1)
 fit_ellipse(xs_lowest_two_thirds, ys_lowest_two_thirds, ax, 'green', 'Lowest 2/3', 2)
 fit_ellipse(xs_all, ys_all, ax, 'green', 'All Points', 3)
 
-norm = mcolors.Normalize(vmin=1, vmax=max(c2))
+norm = mcolors.Normalize(vmin=0, vmax=max(c2))
 cmap = plt.colormaps['inferno']
 sm = ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])

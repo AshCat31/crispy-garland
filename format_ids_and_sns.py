@@ -6,7 +6,7 @@ def overwrite(input_file):
     pairs = transform(lines)
 
     with open(input_file, 'w') as f:
-        f.write('\n'.join(pairs) + '\n')
+        f.write('\n'.join(pairs))
 
 def transform(lines):
     return ['\t'.join(lines[i:i+2]) for i in range(0, len(lines), 2)]

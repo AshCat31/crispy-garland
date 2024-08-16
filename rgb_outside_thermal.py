@@ -1,4 +1,4 @@
-__author__ = 'Delta Thermal Inc.'
+__author__ = "Delta Thermal Inc."
 __copyright__ = """
     Copyright 2018-2023 Delta Thermal Inc.
 
@@ -17,8 +17,8 @@ import numpy as np
 
 def main():
     device_list = []
-    doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
-    with open(doc_path, 'r') as file:
+    doc_path = "/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt"
+    with open(doc_path, "r") as file:
         for line in file:
             values = line.split()
             device_list.append(values[0])
@@ -32,10 +32,14 @@ def main():
         print(i + 1, device_id)
         device_type = device_type_dict[device_id[:3]][0]
         try:
-            mask_response = get_mask("", device_id, device_type, bucket_name, coverage_percents)
+            mask_response = get_mask(
+                "", device_id, device_type, bucket_name, coverage_percents
+            )
         except Exception as e:
             try:
-                mask_response = get_mask("2", device_id, device_type, bucket_name, coverage_percents)
+                mask_response = get_mask(
+                    "2", device_id, device_type, bucket_name, coverage_percents
+                )
             except Exception as e:
                 print(e, device_id)
                 continue
@@ -46,7 +50,7 @@ def main():
 
 
 def get_mask(ct, device_id, device_type, bucket_name, coverage_percents):
-    key = f'{device_id}/calculated_transformations{ct}/{device_id}/mapped_mask_matrix{device_type}_{device_id}.npy'
+    key = f"{device_id}/calculated_transformations{ct}/{device_id}/mapped_mask_matrix{device_type}_{device_id}.npy"
     mask_response = s3client.get_object(Bucket=bucket_name, Key=key)
     mask_bytes = io.BytesIO(mask_response["Body"].read())
     mask_bytes.seek(0)

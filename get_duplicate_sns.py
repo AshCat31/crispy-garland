@@ -1,6 +1,5 @@
 """Generates csv of IDs with duplicate SNs"""
 
-
 import numpy as np
 
 
@@ -8,12 +7,24 @@ def get_matches(sn, id_idx, all_devices, matched_ids):
     idx = np.where(all_devices.transpose() == sn)[1]
     if len(idx > 0):
         matched_ids.append(
-            np.concatenate((np.swapaxes(all_devices[idx], 0, 1)[id_idx], np.swapaxes(all_devices[idx], 0, 1)[2])))
+            np.concatenate(
+                (
+                    np.swapaxes(all_devices[idx], 0, 1)[id_idx],
+                    np.swapaxes(all_devices[idx], 0, 1)[2],
+                )
+            )
+        )
     else:
         idx = np.where(all_devices.transpose() == " " + sn)[1]
         if len(idx > 0):
             matched_ids.append(
-                np.concatenate((np.swapaxes(all_devices[idx], 0, 1)[id_idx], np.swapaxes(all_devices[idx], 0, 1)[2])))
+                np.concatenate(
+                    (
+                        np.swapaxes(all_devices[idx], 0, 1)[id_idx],
+                        np.swapaxes(all_devices[idx], 0, 1)[2],
+                    )
+                )
+            )
         else:
             matched_ids.append("none")
     matched_ids = matched_ids[0][0].split()
@@ -28,7 +39,11 @@ date_idx = 2
 matches_dict = {}
 all_devices = np.genfromtxt(id_list_path, delimiter=",", skip_header=1, dtype=str)
 
-duplicate_sns = [sn for sn in all_devices.transpose()[sn_idx] if len(np.where(all_devices.transpose() == sn)[0]) > 1]
+duplicate_sns = [
+    sn
+    for sn in all_devices.transpose()[sn_idx]
+    if len(np.where(all_devices.transpose() == sn)[0]) > 1
+]
 
 for sn in duplicate_sns:
     matched_ids = []
@@ -45,4 +60,12 @@ for sn in duplicate_sns:
 with open(output_path, "w") as out_file:
     tab = "\t"
     out_file.write(
-        "\n".join(sorted([f"{sn}{tab}{tab.join([str(id) for id in ids])}" for sn, ids in matches_dict.items()])))
+        "\n".join(
+            sorted(
+                [
+                    f"{sn}{tab}{tab.join([str(id) for id in ids])}"
+                    for sn, ids in matches_dict.items()
+                ]
+            )
+        )
+    )

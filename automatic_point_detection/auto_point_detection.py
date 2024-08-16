@@ -2,6 +2,7 @@
 This module is responsible for detecting calibration points.
 There is a separate function for thermal images and rgb images.
 """
+
 import math
 
 import cv2
@@ -29,14 +30,16 @@ THERMAL_THRESOLD_C_HUB = -30
 RGB_THRESHOLD_LEVEL = 250
 
 
-def validate_contour(contour, minimal_size: int, maximal_size: int, fulfilment_threshold: float):
+def validate_contour(
+    contour, minimal_size: int, maximal_size: int, fulfilment_threshold: float
+):
     """Check if contour has correct shape and size
 
     Args:
         contour (cv2.Mat): validated contour
-        minimal_size (int): minimal area of contour 
+        minimal_size (int): minimal area of contour
         maximal_size (int): maximal area of contour
-        fulfilment_threshold (float): values <0,1> - accept shapes that are more similar to circle than this value 
+        fulfilment_threshold (float): values <0,1> - accept shapes that are more similar to circle than this value
 
     Returns:
         True if contour is valid, False otherwise
@@ -46,11 +49,14 @@ def validate_contour(contour, minimal_size: int, maximal_size: int, fulfilment_t
 
     _, r = cv2.minEnclosingCircle(contour)
 
-    circle_area = math.pi*r*r
+    circle_area = math.pi * r * r
 
-    percentage_of_fulfilment = contour_area/circle_area
+    percentage_of_fulfilment = contour_area / circle_area
 
-    return minimal_size <= contour_area <= maximal_size and percentage_of_fulfilment >= fulfilment_threshold
+    return (
+        minimal_size <= contour_area <= maximal_size
+        and percentage_of_fulfilment >= fulfilment_threshold
+    )
 
 
 def find_calibration_points_on_heatmap(image: cv2.Mat, is_hydra=True):
@@ -58,7 +64,7 @@ def find_calibration_points_on_heatmap(image: cv2.Mat, is_hydra=True):
 
     Args:
         image (cv2.Mat): calibration heatmap
-        is_hydra (bool): flag indicating device type (hydra or hub) 
+        is_hydra (bool): flag indicating device type (hydra or hub)
 
     Returns:
         coordinates - sorted list of calibration point coordinates
@@ -75,22 +81,33 @@ def find_calibration_points_on_heatmap(image: cv2.Mat, is_hydra=True):
 
     if is_hydra:
         thresh = cv2.adaptiveThreshold(
-            image_8u, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, THERMAL_THRESOLD_KERNEL_HYDRA, THERMAL_THRESOLD_C_HYDRA)
+            image_8u,
+            255,
+            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+            cv2.THRESH_BINARY,
+            THERMAL_THRESOLD_KERNEL_HYDRA,
+            THERMAL_THRESOLD_C_HYDRA,
+        )
     else:
         thresh = cv2.adaptiveThreshold(
-            image_8u, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, THERMAL_THRESOLD_KERNEL_HUB, THERMAL_THRESOLD_C_HUB)   
-    
+            image_8u,
+            255,
+            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+            cv2.THRESH_BINARY,
+            THERMAL_THRESOLD_KERNEL_HUB,
+            THERMAL_THRESOLD_C_HUB,
+        )
+
     thresh_8u = np.uint8(thresh)
 
-    if is_hydra:    
-        kernel = np.ones((3,3))
+    if is_hydra:
+        kernel = np.ones((3, 3))
         thresh_8u = cv2.erode(thresh_8u, kernel=kernel, iterations=1)
         thresh_8u = cv2.dilate(thresh_8u, kernel=kernel, iterations=1)
 
     thresh_rgb = cv2.cvtColor(thresh_8u, cv2.COLOR_GRAY2RGB)
 
-    contours = cv2.findContours(
-        thresh_8u, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = cv2.findContours(thresh_8u, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = imutils.grab_contours(contours)
 
     contours = [contour for contour in contours]
@@ -104,7 +121,12 @@ def find_calibration_points_on_heatmap(image: cv2.Mat, is_hydra=True):
 
     # we now want to filter out noise
     for c in contours:
-        correct_contour = validate_contour(c, MINIMAL_THERMAL_CONTOUR_AREA, MAXIMAL_THERMAL_CONTOUR_AREA, FULFILMENT_THERMAL_THRESHOLD)
+        correct_contour = validate_contour(
+            c,
+            MINIMAL_THERMAL_CONTOUR_AREA,
+            MAXIMAL_THERMAL_CONTOUR_AREA,
+            FULFILMENT_THERMAL_THRESHOLD,
+        )
         if correct_contour:
             ((x, y), _) = cv2.minEnclosingCircle(c)
             coordinates.append((int(x), int(y)))
@@ -136,7 +158,9 @@ def find_calibration_points_on_rgb_photo(image):
     kernel = (3, 3)
     image_8u = cv2.GaussianBlur(image_8u, kernel, 0)
 
-    image_8u = cv2.normalize(image_8u, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+    image_8u = cv2.normalize(
+        image_8u, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX
+    )
 
     image_rgb = cv2.cvtColor(image_8u, cv2.COLOR_GRAY2RGB)
 
@@ -144,21 +168,27 @@ def find_calibration_points_on_rgb_photo(image):
 
     thresh_rgb = cv2.cvtColor(thresh, cv2.COLOR_GRAY2RGB)
 
-    contours = cv2.findContours(
-        thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = imutils.grab_contours(contours)
 
     correct_contours = []
 
     # we now want to filter out noise
     for c in contours:
-        is_correct_contour = validate_contour(c, MINIMAL_RGB_CONTOUR_AREA, MAXIMAL_RGB_CONTOUR_AREA, FULFILMENT_RGB_THRESHOLD)
+        is_correct_contour = validate_contour(
+            c,
+            MINIMAL_RGB_CONTOUR_AREA,
+            MAXIMAL_RGB_CONTOUR_AREA,
+            FULFILMENT_RGB_THRESHOLD,
+        )
         if is_correct_contour:
             correct_contours.append(c)
 
     # In case of small reflections on box walls
     if len(correct_contours) > NUMBER_OF_CP_WITH_TRIANGLE:
-        correct_contours.sort(key=lambda contour: cv2.contourArea(contour), reverse=True)
+        correct_contours.sort(
+            key=lambda contour: cv2.contourArea(contour), reverse=True
+        )
         correct_contours = correct_contours[:NUMBER_OF_CP_WITH_TRIANGLE]
 
     coordinates = []
@@ -167,7 +197,10 @@ def find_calibration_points_on_rgb_photo(image):
         (x, y), _ = cv2.minEnclosingCircle(c)
         coordinates.append((int(x), int(y)))
 
-    if len(coordinates) == NUMBER_OF_CALIBRATION_POINTS or len(coordinates) == NUMBER_OF_CP_WITH_TRIANGLE:
+    if (
+        len(coordinates) == NUMBER_OF_CALIBRATION_POINTS
+        or len(coordinates) == NUMBER_OF_CP_WITH_TRIANGLE
+    ):
 
         if len(coordinates) == NUMBER_OF_CALIBRATION_POINTS:
             coordinates = sort_calibration_points(coordinates)
@@ -181,7 +214,7 @@ def find_calibration_points_on_rgb_photo(image):
 
 
 def sort_calibration_points(points: list[(int, int)]):
-    """ Sort array so points are in a following order:
+    """Sort array so points are in a following order:
         1 2 3
         4 5 6
         7 8 9
@@ -198,7 +231,7 @@ def sort_calibration_points(points: list[(int, int)]):
 
 
 def sort_calibration_points_remove_triangle(points: list[(int, int)]):
-    """ Sort array so points are in a following order:
+    """Sort array so points are in a following order:
         1 2 3
         4 5 6 7
         8 9 10
@@ -217,7 +250,7 @@ def sort_calibration_points_remove_triangle(points: list[(int, int)]):
 
 
 def find_coordinates_by_threshold(image: cv2.Mat, threshold: float):
-    """Find coordinates of all points brighter than the threshold. 
+    """Find coordinates of all points brighter than the threshold.
 
     Args:
         image (cv2.Mat): image with bright spots (usually after thresholding)
@@ -233,4 +266,3 @@ def find_coordinates_by_threshold(image: cv2.Mat, threshold: float):
         coordinates.append((int(pt[0]), int(pt[1])))
 
     return coordinates
-

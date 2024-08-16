@@ -5,6 +5,7 @@ import paralax_check as check
 import putCal as put
 from automatic_rgb_thermal_mapping import Mapper
 
+
 def main():
     print("Auto calibrating...")
     with open("/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt", "r") as id_file:

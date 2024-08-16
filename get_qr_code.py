@@ -3,14 +3,18 @@ import os
 
 
 def download_json(deviceId):
-    output = os.system(f'aws s3 cp s3://kcam-calibration-data/{deviceId}/data.json ~/S3bucket/{deviceId}/data.json --only-show-errors')
+    output = os.system(
+        f"aws s3 cp s3://kcam-calibration-data/{deviceId}/data.json ~/S3bucket/{deviceId}/data.json --only-show-errors"
+    )
     if output != 0:
         return False
     return True
 
 
 head_ct = hub_ct = 0
-with open("/home/canyon/Test_Equipment/crispy-garland/SNs_with_IDs.txt", "r") as id_file:
+with open(
+    "/home/canyon/Test_Equipment/crispy-garland/SNs_with_IDs.txt", "r"
+) as id_file:
     for line in id_file:
         device = line.split()
         id = device[0]
@@ -21,7 +25,7 @@ with open("/home/canyon/Test_Equipment/crispy-garland/SNs_with_IDs.txt", "r") as
         except FileNotFoundError:
             print(id, "s3 json doesn't exist")
             continue
-        dev_type = data_content['qr_code'].split(";")[0]
+        dev_type = data_content["qr_code"].split(";")[0]
         if dev_type == "400-0103-02":
             hub_ct += 1
         else:

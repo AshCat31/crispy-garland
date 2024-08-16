@@ -1,4 +1,4 @@
-__author__ = 'Delta Thermal Inc.'
+__author__ = "Delta Thermal Inc."
 __copyright__ = """
     Copyright 2018-2023 Delta Thermal Inc.
 
@@ -20,11 +20,11 @@ from s3_setup import S3Setup
 def main():
     device_list = []
     failures = []
-    doc_path = '/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt'
+    doc_path = "/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt"
     s3c = S3Setup()
     s3client, bucket_name = s3c()
     show_plot = False
-    with open(doc_path, 'r') as file:
+    with open(doc_path, "r") as file:
         for line in file:
             device_list.append(line.split()[0])
     for i, device_id in enumerate(device_list):
@@ -35,13 +35,15 @@ def main():
     # print("Avg failures:", statistics.mean(failures))
     print("\n".join(failures))
     if show_plot:
-        counts, edges, bars = plt.hist(failures, bins=15, edgecolor='black')
+        counts, edges, bars = plt.hist(failures, bins=15, edgecolor="black")
         plt.bar_label(bars)
         # plt.show()
 
-        
+
 class ROIChecker:
-    def __init__(self, device_id, i, s3client, bucket_name, failures, show_plot=False) -> None:
+    def __init__(
+        self, device_id, i, s3client, bucket_name, failures, show_plot=False
+    ) -> None:
         self.s3client = s3client
         self.bucket_name = bucket_name
         self.device_id = device_id
@@ -50,44 +52,56 @@ class ROIChecker:
         self.i = i
         self.x_trans = self.y_trans = 0
 
-        hub_base_image = ['/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_one.jpeg',]
-        hub_rois = [[
-            '/home/canyon/Test_Equipment/hub_alignment_test/roi1.npy',  # 10000000eed77a0e
-            '/home/canyon/Test_Equipment/hub_alignment_test/roi3.npy',  # 1000000000eb7857
-            '/home/canyon/Test_Equipment/hub_alignment_test/roi4.npy',  # 10000000011e44c9
-            '/home/canyon/Test_Equipment/hub_alignment_test/roi5.npy',  # 1000000002b88c87
-            '/home/canyon/Test_Equipment/hub_alignment_test/roi7.npy',  # 1000000003676bf1
-            '/home/canyon/Test_Equipment/hub_alignment_test/roi8.npy',  # 10000000037c5199
-            '/home/canyon/Test_Equipment/hub_alignment_test/roi9.npy',  # 1000000003a42eec
-        ]]
+        hub_base_image = [
+            "/home/canyon/Test_Equipment/hub_alignment_test/breaker9_10_one.jpeg",
+        ]
+        hub_rois = [
+            [
+                "/home/canyon/Test_Equipment/hub_alignment_test/roi1.npy",  # 10000000eed77a0e
+                "/home/canyon/Test_Equipment/hub_alignment_test/roi3.npy",  # 1000000000eb7857
+                "/home/canyon/Test_Equipment/hub_alignment_test/roi4.npy",  # 10000000011e44c9
+                "/home/canyon/Test_Equipment/hub_alignment_test/roi5.npy",  # 1000000002b88c87
+                "/home/canyon/Test_Equipment/hub_alignment_test/roi7.npy",  # 1000000003676bf1
+                "/home/canyon/Test_Equipment/hub_alignment_test/roi8.npy",  # 10000000037c5199
+                "/home/canyon/Test_Equipment/hub_alignment_test/roi9.npy",  # 1000000003a42eec
+            ]
+        ]
         head_base_image = [
-            '/home/canyon/Test_Equipment/head_alignment_test/port0_one.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port1_one.jpeg',
-            '/home/canyon/Test_Equipment/head_alignment_test/port2_one.jpeg',
+            "/home/canyon/Test_Equipment/head_alignment_test/port0_one.jpeg",
+            "/home/canyon/Test_Equipment/head_alignment_test/port1_one.jpeg",
+            "/home/canyon/Test_Equipment/head_alignment_test/port2_one.jpeg",
         ]
         head_rois = [
-            ['/home/canyon/Test_Equipment/head_alignment_test/auto_port0_one.npy',
-            '/home/canyon/Test_Equipment/head_alignment_test/auto_port0_two.npy',
-            '/home/canyon/Test_Equipment/head_alignment_test/auto_port0_three.npy',
-            '/home/canyon/Test_Equipment/head_alignment_test/auto_port0_four.npy',
-            '/home/canyon/Test_Equipment/head_alignment_test/auto_port0_five.npy',
+            [
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port0_one.npy",
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port0_two.npy",
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port0_three.npy",
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port0_four.npy",
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port0_five.npy",
             ],
-            ['/home/canyon/Test_Equipment/head_alignment_test/auto_port1_one.npy',
-            '/home/canyon/Test_Equipment/head_alignment_test/auto_port1_two.npy',
-            '/home/canyon/Test_Equipment/head_alignment_test/auto_port1_three.npy',
-            '/home/canyon/Test_Equipment/head_alignment_test/auto_port1_four.npy',
-            '/home/canyon/Test_Equipment/head_alignment_test/auto_port1_five.npy',
+            [
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port1_one.npy",
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port1_two.npy",
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port1_three.npy",
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port1_four.npy",
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port1_five.npy",
             ],
-            ['/home/canyon/Test_Equipment/head_alignment_test/auto_port2_one.npy',
-            '/home/canyon/Test_Equipment/head_alignment_test/auto_port2_two.npy',
-            '/home/canyon/Test_Equipment/head_alignment_test/auto_port2_three.npy',
-            '/home/canyon/Test_Equipment/head_alignment_test/auto_port2_four.npy',
-            '/home/canyon/Test_Equipment/head_alignment_test/auto_port2_five.npy',
+            [
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port2_one.npy",
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port2_two.npy",
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port2_three.npy",
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port2_four.npy",
+                "/home/canyon/Test_Equipment/head_alignment_test/auto_port2_five.npy",
             ],
         ]
         self.WIDTH, self.HEIGHT = 440, 520
-        self.device_type_dict = {"100": ("_mosaic", hub_base_image, hub_rois, 1), "E66": ("_hydra", head_base_image, head_rois, 3)}
-        self.device_type, self.base_image, self.roi_files, self.num_ports = self.device_type_dict[self.device_id[:3]]
+        self.device_type_dict = {
+            "100": ("_mosaic", hub_base_image, hub_rois, 1),
+            "E66": ("_hydra", head_base_image, head_rois, 3),
+        }
+        self.device_type, self.base_image, self.roi_files, self.num_ports = (
+            self.device_type_dict[self.device_id[:3]]
+        )
         self.failures = []
         self.device_rois = []
         self.images = []
@@ -101,10 +115,18 @@ class ROIChecker:
             except Exception as e2:
                 print(e2, self.device_id)
                 return
-            
+
         for port in range(self.num_ports):
             if self.show_plot:
-                self.images.append(cv2.drawContours(self.pad_image(PImage.open(self.base_image[port])), self.mask_edges_contours, -1, (255, 255, 255), 1))
+                self.images.append(
+                    cv2.drawContours(
+                        self.pad_image(PImage.open(self.base_image[port])),
+                        self.mask_edges_contours,
+                        -1,
+                        (255, 255, 255),
+                        1,
+                    )
+                )
             port_rois = []
             for roifile in self.roi_files[port]:
                 rois = np.load(roifile)
@@ -119,15 +141,30 @@ class ROIChecker:
         return self.failures
 
     def get_mask(self, ct):
-        key = f'{self.device_id}/calculated_transformations{ct}/{self.device_id}/mapped_mask_matrix{self.device_type}_{self.device_id}.npy'
-        local_directory = '/home/canyon/S3bucket/'
+        key = f"{self.device_id}/calculated_transformations{ct}/{self.device_id}/mapped_mask_matrix{self.device_type}_{self.device_id}.npy"
+        local_directory = "/home/canyon/S3bucket/"
         try:  # checking first is slower
-            self.mask_map = np.load(os.path.join(local_directory, key)).astype(np.uint8) * 255
+            self.mask_map = (
+                np.load(os.path.join(local_directory, key)).astype(np.uint8) * 255
+            )
         except FileNotFoundError:
-            os.makedirs(os.path.join(local_directory, f'{self.device_id}/calculated_transformations{ct}/{self.device_id}'))
-            self.s3client.download_file(Bucket=self.bucket_name, Key=key, Filename=os.path.join(local_directory, key))
-            self.mask_map = np.load(os.path.join(local_directory, key)).astype(np.uint8) * 255
-        self.mask_edges_contours, _ = cv2.findContours(cv2.Canny(self.mask_map, 30, 200), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+            os.makedirs(
+                os.path.join(
+                    local_directory,
+                    f"{self.device_id}/calculated_transformations{ct}/{self.device_id}",
+                )
+            )
+            self.s3client.download_file(
+                Bucket=self.bucket_name,
+                Key=key,
+                Filename=os.path.join(local_directory, key),
+            )
+            self.mask_map = (
+                np.load(os.path.join(local_directory, key)).astype(np.uint8) * 255
+            )
+        self.mask_edges_contours, _ = cv2.findContours(
+            cv2.Canny(self.mask_map, 30, 200), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
+        )
 
     def sliders_on_changed(self, _):
         self.x_trans = self.x_slider.val
@@ -137,23 +174,29 @@ class ROIChecker:
 
     def roi_pass(self, roi_x, roi_y):
         return np.count_nonzero(self.mask_map[np.uint16(roi_y), np.uint16(roi_x)]) >= 50
-    
+
     def pad_image(self, rgb_img):
         img_padded = np.zeros((520, 440)).astype(np.uint8)
         rgb_img = np.asarray(rgb_img.rotate(180))
-        if self.device_type == '_mosaic':
-            rgb_img = rgb_img[:,:,0]*1.3
-        img_padded[100 - self.y_trans:420 - self.y_trans, 100 + self.x_trans:340 + self.x_trans] = rgb_img
+        if self.device_type == "_mosaic":
+            rgb_img = rgb_img[:, :, 0] * 1.3
+        img_padded[
+            100 - self.y_trans : 420 - self.y_trans,
+            100 + self.x_trans : 340 + self.x_trans,
+        ] = rgb_img
         return img_padded
 
     def check_rois(self):
         self.roi_color = []
         fail_ct = 0
-        for port in range(self.num_ports):                
+        for port in range(self.num_ports):
             cidx = 0
             for rois in self.device_rois[port]:
                 for roi in rois:
-                    roi_x, roi_y = self.WIDTH + self.x_trans - roi[:, :, 0], self.HEIGHT - self.y_trans - roi[:, :, 1]
+                    roi_x, roi_y = (
+                        self.WIDTH + self.x_trans - roi[:, :, 0],
+                        self.HEIGHT - self.y_trans - roi[:, :, 1],
+                    )
                     if self.roi_pass(roi_x, roi_y):
                         self.roi_color.append((-1, roi_x, roi_y, port))
                     else:
@@ -169,11 +212,18 @@ class ROIChecker:
             # self.axs[port].plot([self.rgb_cen[0], self.therm_x], [self.rgb_cen[1], self.therm_y], markersize=6, color='red', zorder=9999)
             # self.axs[port].plot(self.rgb_cen[0] + self.x_trans, self.rgb_cen[1] - self.y_trans, 'o', markersize=10, color='orange', zorder=8888)
 
-            self.axs[port].imshow(self.images[port], cmap='gray')
+            self.axs[port].imshow(self.images[port], cmap="gray")
             self.axs[port].set_title("Port " + str(port))
-            self.axs[port].axis('off')
+            self.axs[port].axis("off")
         for roi in self.roi_color:
-            self.axs[roi[3]].plot(roi[1], roi[2], 'o', color=self.colors[roi[0]], markersize=5, zorder=roi[0]+5)
+            self.axs[roi[3]].plot(
+                roi[1],
+                roi[2],
+                "o",
+                color=self.colors[roi[0]],
+                markersize=5,
+                zorder=roi[0] + 5,
+            )
         self.fig.canvas.draw_idle()
 
     def setup(self):
@@ -185,22 +235,44 @@ class ROIChecker:
         # self.y_trans = self.rgb_cen[1]-self.therm_y  # "
 
     def initialize_plot(self):
-        self.colors = ['brown', 'cyan', 'magenta', 'blue', 'green', 'yellow', 'orange', 'red', 'lightgrey']
+        self.colors = [
+            "brown",
+            "cyan",
+            "magenta",
+            "blue",
+            "green",
+            "yellow",
+            "orange",
+            "red",
+            "lightgrey",
+        ]
         self.fig, self.axs = plt.subplots(1, self.num_ports)
         self.fig.suptitle(str(self.i + 1) + ": " + self.device_id)
-        if self.device_type != '_hydra':
-                self.axs = [self.axs]
+        if self.device_type != "_hydra":
+            self.axs = [self.axs]
         slider_min, slider_max = -50, 50
         x_slider_ax = self.fig.add_axes([0.1, 0.05, 0.8, 0.03])
-        self.x_slider = plt.Slider(x_slider_ax, 'x', slider_min, slider_max, valinit=self.x_trans, valstep=1)
+        self.x_slider = plt.Slider(
+            x_slider_ax, "x", slider_min, slider_max, valinit=self.x_trans, valstep=1
+        )
         y_slider_ax = self.fig.add_axes([0.03, 0.1, 0.03, 0.8])
-        self.y_slider = plt.Slider(y_slider_ax, 'y', slider_min, slider_max, valinit=self.y_trans, valstep=1, orientation="vertical")
+        self.y_slider = plt.Slider(
+            y_slider_ax,
+            "y",
+            slider_min,
+            slider_max,
+            valinit=self.y_trans,
+            valstep=1,
+            orientation="vertical",
+        )
         self.x_slider.on_changed(self.sliders_on_changed)
         self.y_slider.on_changed(self.sliders_on_changed)
         self.update_plot()
         self.fig.canvas.manager.window.wm_geometry("+0+0")
         self.fig.canvas.manager.window.geometry("1910x1000")
-        plt.subplots_adjust(wspace=0, hspace=0.01, bottom=0, top=0.95, left=.05, right=.98)
+        plt.subplots_adjust(
+            wspace=0, hspace=0.01, bottom=0, top=0.95, left=0.05, right=0.98
+        )
         plt.show()
 
 

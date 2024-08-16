@@ -4,7 +4,8 @@ import os
 
 def download_json(deviceId):
     output = os.system(
-        f'aws s3 cp s3://kcam-calibration-data/{deviceId}/data.json ~/S3bucket/{deviceId}/data.json')
+        f"aws s3 cp s3://kcam-calibration-data/{deviceId}/data.json ~/S3bucket/{deviceId}/data.json"
+    )
     if output != 0:
         return False
     return True
@@ -12,13 +13,16 @@ def download_json(deviceId):
 
 def upload_json(deviceId):
     output = os.system(
-        f'aws s3 cp ~/S3bucket/{deviceId}/data.json s3://kcam-calibration-data/{deviceId}/data.json')
+        f"aws s3 cp ~/S3bucket/{deviceId}/data.json s3://kcam-calibration-data/{deviceId}/data.json"
+    )
     if output != 0:
         return False
     return True
 
 
-with open("/home/canyon/Test_Equipment/crispy-garland/IDs_to_change_SNs.txt", "r") as id_file:
+with open(
+    "/home/canyon/Test_Equipment/crispy-garland/IDs_to_change_SNs.txt", "r"
+) as id_file:
     for line in id_file:
         device = line.split()
         id = device[0]
@@ -29,10 +33,10 @@ with open("/home/canyon/Test_Equipment/crispy-garland/IDs_to_change_SNs.txt", "r
         except FileNotFoundError:
             print(id, "s3 json doesn't exist")
             continue
-        print("Old SN is:", data_content['serial_number'])
+        print("Old SN is:", data_content["serial_number"])
         new_sn = input("New SN: ")
         if new_sn:
-            data_content['serial_number'] = new_sn
+            data_content["serial_number"] = new_sn
 
             with open(f"../S3bucket/{id}/data.json", "w") as json_file:
                 json.dump(data_content, json_file)

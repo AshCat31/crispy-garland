@@ -1,4 +1,5 @@
 """A set of utils for automatic calibration development"""
+
 import os
 import json
 import logging
@@ -9,11 +10,13 @@ import numpy as np
 CALIBRATION_DATA_PATH = "/home/jacek/delta-thermal/calibration_data/"
 
 
-def load_thermal_image(path: str, thermal_flip_ud: bool = False, thermal_flip_lr: bool = False):
+def load_thermal_image(
+    path: str, thermal_flip_ud: bool = False, thermal_flip_lr: bool = False
+):
     """Loads thermal image the same way delta-thermal-rgb-mapping does.
 
     Args:
-        path (str): path thermal calibration image 
+        path (str): path thermal calibration image
         thermal_flip_ud (bool): should be calibration image flipped along axis 0
         thermal_flip_lr (bool): should be calibration image flipped along axis 1
 
@@ -33,10 +36,12 @@ def load_thermal_image(path: str, thermal_flip_ud: bool = False, thermal_flip_lr
     # Scale the thermal image by a factor or 10 (from 32x24 to 320x240)
     # for better smoothness of the heatmap
     dest_size = (240, 320)
-    trml_matrix_scaled = cv2.resize(
-        trml_arr, dest_size, interpolation=cv2.INTER_CUBIC)
-    trml_matrix_scaled = np.array((trml_matrix_scaled - np.min(trml_matrix_scaled))/(
-        np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled))*255).astype(np.uint8)
+    trml_matrix_scaled = cv2.resize(trml_arr, dest_size, interpolation=cv2.INTER_CUBIC)
+    trml_matrix_scaled = np.array(
+        (trml_matrix_scaled - np.min(trml_matrix_scaled))
+        / (np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled))
+        * 255
+    ).astype(np.uint8)
 
     return trml_matrix_scaled
 
@@ -45,7 +50,7 @@ def load_rgb_image(path: str, rotate_rgb: bool = False):
     """Loads rbg image the same way delta-thermal-rgb-mapping does.
 
     Args:
-        path (str): path rgb calibration image 
+        path (str): path rgb calibration image
         rotate_rgb (bool): should rgb image be rotated by 90 degrees
 
     Returns:
@@ -67,7 +72,7 @@ def try_to_read_list_from_file(filename):
     """Tries to load data from file. If no file, returns empty array.
 
     Args:
-        filename (str): path to filename 
+        filename (str): path to filename
 
     Returns:
         data - array of stripped lines from file
@@ -94,16 +99,16 @@ def load_coordinates(path):
 
 def get_coordinates_filename(base_path, device_id):
     """Return filename for coordinates file based on device_id"""
-    unit_type = "hydra_" if device_id[0] == 'E' else "mosaic_"
+    unit_type = "hydra_" if device_id[0] == "E" else "mosaic_"
 
     if unit_type == "hydra_":
         img_idx = device_id
     else:
         # find camera ID
         try:
-            with open(os.path.join(base_path, 'data.json')) as f:
+            with open(os.path.join(base_path, "data.json")) as f:
                 data = json.load(f)
-                img_idx = data['camera_id']
+                img_idx = data["camera_id"]
             if img_idx is None:
                 logging.warning(f"no camera id found for {device_id}")
         except FileNotFoundError:
@@ -130,6 +135,7 @@ def get_data_for_device(device_id):
         return False, None, None
 
     return True, calibration_points, thermal_image
+
 
 def get_device_calibration_images(device_id):
     """Load thermal image and rgb image for selected device"""

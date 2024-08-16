@@ -1,4 +1,5 @@
 """This module is responsible for communication with s3 bucket"""
+
 import io
 import json
 
@@ -9,8 +10,8 @@ from s3_setup import S3Setup
 
 IMAGE_SIZE = (240, 320)
 CALIBRATION_POINTS_LENGTH = 9
-JSON_DEVICE_TYPE = 'device_type'
-JSON_CAMERA_ID = 'camera_id'
+JSON_DEVICE_TYPE = "device_type"
+JSON_CAMERA_ID = "camera_id"
 HYDRA_DEVICE_NAME = "hydra"
 HUB_DEVICE_NAME = "hub"
 HUB_MOSAIC_NAME = "mosaic"
@@ -37,8 +38,7 @@ def get_file_from_s3(filename: str):
 def load_rgb_image_from_s3(filename: str):
     """Download rgb image from s3"""
     raw_image_bytes = get_file_from_s3(filename)
-    raw_image_np_bytes = np.asarray(
-        bytearray(raw_image_bytes.read()), dtype=np.uint8)
+    raw_image_np_bytes = np.asarray(bytearray(raw_image_bytes.read()), dtype=np.uint8)
     rgb_image = cv2.imdecode(raw_image_np_bytes, cv2.IMREAD_COLOR)
     if np.max(rgb_image) <= 1:
         rgb_image = (rgb_image * 255).astype(np.uint8)
@@ -54,11 +54,16 @@ def load_numpy_array_from_s3(filename: str):
 
 def load_thermal_image_from_s3(device_id: str):
     """Download thermal image from s3"""
-    thermal_image = load_numpy_array_from_s3(f'{device_id}/6_inch.npy')
+    thermal_image = load_numpy_array_from_s3(f"{device_id}/6_inch.npy")
     thermal_image = np.transpose(thermal_image)
-    thermal_image_scaled = cv2.resize(thermal_image, IMAGE_SIZE, interpolation=cv2.INTER_CUBIC)
-    thermal_image_scaled = np.array((thermal_image_scaled - np.min(thermal_image_scaled))/(
-        np.max(thermal_image_scaled) - np.min(thermal_image_scaled))*255).astype(np.uint8)
+    thermal_image_scaled = cv2.resize(
+        thermal_image, IMAGE_SIZE, interpolation=cv2.INTER_CUBIC
+    )
+    thermal_image_scaled = np.array(
+        (thermal_image_scaled - np.min(thermal_image_scaled))
+        / (np.max(thermal_image_scaled) - np.min(thermal_image_scaled))
+        * 255
+    ).astype(np.uint8)
     return thermal_image_scaled
 
 
@@ -78,7 +83,7 @@ def write_json_to_s3(filename, json_data):
 
 def get_device_type_and_idx(device_id: str):
     """Download device information from s3"""
-    json_data = load_json_from_s3(f'{device_id}/data.json')
+    json_data = load_json_from_s3(f"{device_id}/data.json")
     if JSON_DEVICE_TYPE in json_data:
         device_type = json_data[JSON_DEVICE_TYPE]
         if device_type == HUB_DEVICE_NAME:
@@ -96,7 +101,7 @@ def get_device_type_and_idx(device_id: str):
 
 def update_data_json_on_s3(device_id, data_array):
     """Write new entries or update existing in s3 data.json"""
-    filename = f'{device_id}/data.json'
+    filename = f"{device_id}/data.json"
     json_data = load_json_from_s3(filename)
     for key, value in data_array:
         json_data[key] = value

@@ -1,3 +1,6 @@
+"""Generates csv of unique device IDs"""
+
+
 import boto3
 import numpy as np
 import pandas as pd

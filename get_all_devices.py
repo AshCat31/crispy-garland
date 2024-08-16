@@ -1,7 +1,9 @@
+"""Generates csv of all IDs, their SNs, and last modified date"""
+
+
 import csv
 from datetime import datetime as dt
 import json
-import logging
 import timeit
 
 import numpy as np
@@ -60,21 +62,17 @@ def main():
             print("error", id, e)
         if idx % 400 == 0:  # log every 400th to show progress
             print(idx)
+    print(idx)  # log last idx
     with open("all_devices.csv", "w", newline='') as out_file:
         writer = csv.writer(out_file)
         writer.writerows(everything)
 
 
 if __name__ == "__main__":
-    global logger, s3client, bucket_name
-    logger = logging.getLogger(__name__)
-    log_format = '%(levelname)-6s: %(message)s'
-    logging.addLevelName(logging.WARNING, "\033[1;31m%s\033[1;0m" % logging.getLevelName(logging.WARNING))
-    logging.addLevelName(logging.ERROR, "\033[1;41m%s\033[1;0m" % logging.getLevelName(logging.ERROR))
-    logging.basicConfig(level=logging.WARN, format=log_format)
+    global s3client, bucket_name
 
     s3s = S3Setup()
     s3client, bucket_name = s3s()
 
     # main()
-    print(timeit.timeit("main()", number=1, globals=globals()))
+    print(timeit.timeit("main()", number=1, globals=globals()), "sec")

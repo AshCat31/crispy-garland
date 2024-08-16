@@ -185,7 +185,7 @@ class Mapper:
         adjusted_image = ((normalized_image - 0.5) * contrast_factor + 0.5) * 255
         return np.clip(adjusted_image, 0, 255).astype(np.uint8)
 
-    def do_automatic_rgb_calibration_mapping(self, device_id, debug_mode=False, overwrite=True):
+    def do_automatic_rgb_calibration_mapping(self, device_id, debug_mode=True, overwrite=True):
         """Do automatic calibration mapping and send results to s3"""
         folder_path = os.path.join("/home/canyon/S3bucket/", device_id)
         rgb_coordinates_file_path = folder_path + '/rgb_' + device_id + '_9element_coord.npy'

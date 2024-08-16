@@ -9,16 +9,12 @@ def get_matches(sn, target_idx, all_devices):
     else:
         idx = np.where(np.swapaxes(all_devices, 0, 1) == " " + sn)[1]
         if len(idx > 0):
-            sns_and_ids.append(
-                " ".join(np.swapaxes(all_devices[idx], 0, 1)[target_idx])
-            )
+            sns_and_ids.append(" ".join(np.swapaxes(all_devices[idx], 0, 1)[target_idx]))
         else:
             if target_idx == 0:  # if finding ID, try prepending a 0
                 idx = np.where(np.swapaxes(all_devices, 0, 1) == "0" + sn)[1]
                 if len(idx > 0):
-                    sns_and_ids.append(
-                        " ".join(np.swapaxes(all_devices[idx], 0, 1)[target_idx])
-                    )
+                    sns_and_ids.append(" ".join(np.swapaxes(all_devices[idx], 0, 1)[target_idx]))
                 else:
                     sns_and_ids.append("none")
             else:

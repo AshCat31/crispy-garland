@@ -16,15 +16,11 @@ BASE_PATH = "/home/jacek/delta-thermal/calibration_data/"
 DEBUG_HELP = "Show each image with additional data"
 ROTATION_HELP = "Check which images are rotated"
 SHIFT_HELP = "Check which images are shifted"
-THRESHOLD_HELP = (
-    "For shift: show images that have points that are closer than this number"
-)
+THRESHOLD_HELP = "For shift: show images that have points that are closer than this number"
 "For rotation: show images that have more rotation than this number"
 DEVICE_ID_HELP = "Device ID to check, always debug mode"
 FILE_HELP = "Check devices from this file"
-DIRECTORY_HELP = (
-    "Save each selected image to file in this directory (create if not existing)"
-)
+DIRECTORY_HELP = "Save each selected image to file in this directory (create if not existing)"
 
 ARG_ERROR_TEXT = "You have to use either --shift or --rotatoin option\nExiting"
 NO_FILE_DEVICE_ERROR = "You have to specify file or device_id\n"
@@ -53,9 +49,7 @@ def save_image_to_file(image: cv2.Mat, filename: str, directory: str):
     cv2.imwrite(file_path, image)
 
 
-def check_if_image_is_shifted(
-    device_id: str, threshold: int, debug: bool, save_directory: str = ""
-):
+def check_if_image_is_shifted(device_id: str, threshold: int, debug: bool, save_directory: str = ""):
     """Check if the image is shifted enough that some of the points are not visible
 
     Args:
@@ -80,16 +74,10 @@ def check_if_image_is_shifted(
         for x, y in calibration_points:
             cv2.circle(thermal_image, (int(x), int(y)), 0, (0, 0, 255), 5)
 
-    if (
-        are_points_under_threshold
-        or are_points_over_threshold
-        or threshold == IGNORE_VALUE
-    ):
+    if are_points_under_threshold or are_points_over_threshold or threshold == IGNORE_VALUE:
         print(device_id)
         if save_directory:
-            save_image_to_file(
-                thermal_image, f"{device_id}_bad_shift.png", save_directory
-            )
+            save_image_to_file(thermal_image, f"{device_id}_bad_shift.png", save_directory)
         if debug:
             print(calibration_points)
             if show_image(device_id, thermal_image):
@@ -98,9 +86,7 @@ def check_if_image_is_shifted(
     return False
 
 
-def check_if_image_is_rotated(
-    device_id: str, threshold: int, debug: bool, save_directory: str = ""
-):
+def check_if_image_is_rotated(device_id: str, threshold: int, debug: bool, save_directory: str = ""):
     """Check if the image is rotated enough to interfere with calibration
 
     Args:
@@ -120,12 +106,8 @@ def check_if_image_is_rotated(
 
     cp = calibration_points
 
-    a_vertical = abs(
-        round((int(cp[7][0]) - int(cp[1][0])) / (int(cp[7][1]) - int(cp[1][1])) * 100)
-    )
-    a_horizontal = abs(
-        round((int(cp[5][1]) - int(cp[3][1])) / (int(cp[5][0]) - int(cp[3][0])) * 100)
-    )
+    a_vertical = abs(round((int(cp[7][0]) - int(cp[1][0])) / (int(cp[7][1]) - int(cp[1][1])) * 100))
+    a_horizontal = abs(round((int(cp[5][1]) - int(cp[3][1])) / (int(cp[5][0]) - int(cp[3][0])) * 100))
 
     if save_directory or debug:
         for x, y in calibration_points:
@@ -149,9 +131,7 @@ def check_if_image_is_rotated(
     if a_vertical > threshold or a_horizontal > threshold or threshold == IGNORE_VALUE:
         print(device_id)
         if save_directory:
-            save_image_to_file(
-                thermal_image, f"{device_id}_bad_rotation.png", save_directory
-            )
+            save_image_to_file(thermal_image, f"{device_id}_bad_rotation.png", save_directory)
         if debug:
             print(f"vertical - {a_vertical}, horizontal - {a_horizontal}")
             if show_image(device_id, thermal_image):
@@ -165,9 +145,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", action="store_true", required=False, help=DEBUG_HELP)
     parser.add_argument("--file", type=str, help=FILE_HELP)
-    parser.add_argument(
-        "--directory", required=False, type=str, default="", help=DIRECTORY_HELP
-    )
+    parser.add_argument("--directory", required=False, type=str, default="", help=DIRECTORY_HELP)
     parser.add_argument("--rotation", action="store_true", help=ROTATION_HELP)
     parser.add_argument("--shift", action="store_true", help=SHIFT_HELP)
     parser.add_argument(

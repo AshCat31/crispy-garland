@@ -27,10 +27,7 @@ def compare_points(expected_arr, result_arr):
     if len(expected_arr) != len(result_arr):
         return None
 
-    differences = [
-        calculate_point_difference(expected, result)
-        for expected, result in zip(expected_arr, result_arr)
-    ]
+    differences = [calculate_point_difference(expected, result) for expected, result in zip(expected_arr, result_arr)]
 
     return max(differences)
 
@@ -57,15 +54,11 @@ def exec_test():
     devices = calibration_utils.try_to_read_list_from_file(test_dataset_path)
 
     for device_id in devices:
-        success, correct_points, thermal_image = calibration_utils.get_data_for_device(
-            device_id
-        )
+        success, correct_points, thermal_image = calibration_utils.get_data_for_device(device_id)
         if not success:
             corrupted_count += 1
             continue
-        coordinates, _, _ = auto_point_detection.find_calibration_points_on_heatmap(
-            thermal_image
-        )
+        coordinates, _, _ = auto_point_detection.find_calibration_points_on_heatmap(thermal_image)
 
         compare_result = compare_points(correct_points, coordinates)
 

@@ -70,17 +70,13 @@ def main():
     ]
 
     for _device_id in device_list:
-        parallax_check(
-            _device_id, s3client, _bucket_name, hub_base_image, head_base_image
-        )
+        parallax_check(_device_id, s3client, _bucket_name, hub_base_image, head_base_image)
 
 
 def parallax_check(_device_id, s3client, _bucket_name, hub_base_image, head_base_image):
     print(_device_id)
     try:
-        json_response = s3client.get_object(
-            Bucket=_bucket_name, Key=f"{_device_id}/data.json"
-        )
+        json_response = s3client.get_object(Bucket=_bucket_name, Key=f"{_device_id}/data.json")
     except:
         print(f"{_device_id}/JSON does not exist")
         return
@@ -112,9 +108,7 @@ def parallax_check(_device_id, s3client, _bucket_name, hub_base_image, head_base
     mask_map = mask_map.astype(np.uint8) * 255
 
     mask_edges = cv2.Canny(mask_map, 30, 200)
-    mask_edges_contours, _ = cv2.findContours(
-        mask_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-    )
+    mask_edges_contours, _ = cv2.findContours(mask_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     fig, axs = plt.subplots(x, y)
     fig.suptitle(_device_id)

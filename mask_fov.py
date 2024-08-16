@@ -53,21 +53,11 @@ def main():
         rois = np.load(roi_file)
         for indx, roi in enumerate(rois):
             if (
-                (
-                    "port1" in roi_file
-                    and (colors[cidx % 8] == "cyan" or colors[cidx % 8] == "yellow")
-                )
-                or (
-                    "port2" in roi_file
-                    and (colors[cidx % 8] == "cyan" or colors[cidx % 8] == "red")
-                )
+                ("port1" in roi_file and (colors[cidx % 8] == "cyan" or colors[cidx % 8] == "yellow"))
+                or ("port2" in roi_file and (colors[cidx % 8] == "cyan" or colors[cidx % 8] == "red"))
                 or (
                     "port0" in roi_file
-                    and (
-                        colors[cidx % 8] == "cyan"
-                        or colors[cidx % 8] == "red"
-                        or colors[cidx % 8] == "blue"
-                    )
+                    and (colors[cidx % 8] == "cyan" or colors[cidx % 8] == "red" or colors[cidx % 8] == "blue")
                 )
             ):
                 roi_x, roi_y = width - roi[:, :, 0], height - roi[:, :, 1]
@@ -140,9 +130,7 @@ def get_mask(ct, device_id, device_type, bucket_name):
             )
         except FileExistsError:
             pass
-        s3client.download_file(
-            Bucket=bucket_name, Key=key, Filename=os.path.join(local_directory, key)
-        )
+        s3client.download_file(Bucket=bucket_name, Key=key, Filename=os.path.join(local_directory, key))
     return np.load(os.path.join(local_directory, key)).astype(np.uint8)
 
 
@@ -157,12 +145,8 @@ def find_extreme_indices(array):
     leftmost_index = np.argmin(nonzero_indices[1])
     rightmost_index = np.argmax(nonzero_indices[1])
 
-    highest_lowest_diff = np.abs(
-        nonzero_indices[0][highest_index] - nonzero_indices[0][lowest_index]
-    )
-    leftmost_rightmost_diff = np.abs(
-        nonzero_indices[1][rightmost_index] - nonzero_indices[1][leftmost_index]
-    )
+    highest_lowest_diff = np.abs(nonzero_indices[0][highest_index] - nonzero_indices[0][lowest_index])
+    leftmost_rightmost_diff = np.abs(nonzero_indices[1][rightmost_index] - nonzero_indices[1][leftmost_index])
 
     y_diffs.append(highest_lowest_diff)
     x_diffs.append(leftmost_rightmost_diff)
@@ -176,9 +160,7 @@ def plot_mask(id, img, color, list=None):
         mask_map = get_mask("2", id, "_hydra", "kcam-mosaic-calibration")
     height = find_extreme_indices(mask_map)
     mask_edges = cv2.Canny(mask_map * 255, 30, 200)
-    mask_edges_contours, _ = cv2.findContours(
-        mask_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-    )
+    mask_edges_contours, _ = cv2.findContours(mask_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     color2 = color
     # color2 = (color[0]-255*normalize(height), color[1], color[2]*normalize(height))
     if list is not None:

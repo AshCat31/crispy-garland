@@ -38,15 +38,11 @@ def process_images_from_file(ids_file):
 
             input_image_path = f"/home/canyon/S3bucket/{id}/6_inch.png"
             output_image_path = f"/home/canyon/S3bucket/{id}/6_inch.png"
-            red_output_image_path = (
-                f"/home/canyon/Test_Equipment/crispy-garland/red/{id}red_6_inch.png"
-            )
+            red_output_image_path = f"/home/canyon/Test_Equipment/crispy-garland/red/{id}red_6_inch.png"
 
             # Save original as red_6_inch.png
             os.rename(input_image_path, red_output_image_path)
-            process_image(
-                red_output_image_path, output_image_path
-            )  # must pass red path bcuz input was moved
+            process_image(red_output_image_path, output_image_path)  # must pass red path bcuz input was moved
 
 
 ids_file = "QA_ids.txt"

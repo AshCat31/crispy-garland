@@ -11,24 +11,16 @@ class TestJSONChecker(unittest.TestCase):
         self.s3client = Mock()
         self.bucket_name = "test_bucket"
         self.values = ["10001", "SN123"]
-        self.checker = JSONChecker(
-            self.values, self.s3client, self.bucket_name, self.logger
-        )
+        self.checker = JSONChecker(self.values, self.s3client, self.bucket_name, self.logger)
         # print('test')
 
     def test_check_js_matches_equal(self):
-        self.assertTrue(
-            self.checker.check_js_matches("mosaic", "mosaic", "device_type")
-        )
+        self.assertTrue(self.checker.check_js_matches("mosaic", "mosaic", "device_type"))
         self.logger.error.assert_not_called()  # Assert that logger.error was not called
 
     def test_check_js_matches_not_equal(self):
-        self.assertFalse(
-            self.checker.check_js_matches("mosaic", "hydra", "device_type")
-        )
-        self.logger.error.assert_called_once_with(
-            "device_type in data.json is not the same as input."
-        )
+        self.assertFalse(self.checker.check_js_matches("mosaic", "hydra", "device_type"))
+        self.logger.error.assert_called_once_with("device_type in data.json is not the same as input.")
 
     def test_get_device_type_known_id(self):
         device_type = self.checker.get_device_type("100001")

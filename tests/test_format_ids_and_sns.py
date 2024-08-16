@@ -14,9 +14,7 @@ class TestTransformFunction(unittest.TestCase):
         self.assertEqual(transform(["line1"]), ["line1"])
 
     def test_odd_number_of_lines(self):
-        self.assertEqual(
-            transform(["line1", "line2", "line3"]), ["line1\tline2", "line3"]
-        )
+        self.assertEqual(transform(["line1", "line2", "line3"]), ["line1\tline2", "line3"])
 
     def test_even_number_of_lines(self):
         self.assertEqual(

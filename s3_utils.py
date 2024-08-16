@@ -56,9 +56,7 @@ def load_thermal_image_from_s3(device_id: str):
     """Download thermal image from s3"""
     thermal_image = load_numpy_array_from_s3(f"{device_id}/6_inch.npy")
     thermal_image = np.transpose(thermal_image)
-    thermal_image_scaled = cv2.resize(
-        thermal_image, IMAGE_SIZE, interpolation=cv2.INTER_CUBIC
-    )
+    thermal_image_scaled = cv2.resize(thermal_image, IMAGE_SIZE, interpolation=cv2.INTER_CUBIC)
     thermal_image_scaled = np.array(
         (thermal_image_scaled - np.min(thermal_image_scaled))
         / (np.max(thermal_image_scaled) - np.min(thermal_image_scaled))

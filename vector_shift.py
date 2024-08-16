@@ -256,9 +256,7 @@ def get_json(id):
             json_content = json.load(json_file)
     except FileNotFoundError:
         try:
-            s3client.download_file(
-                Bucket=bucket_name, Key=key, Filename=os.path.join(s3dir, key)
-            )
+            s3client.download_file(Bucket=bucket_name, Key=key, Filename=os.path.join(s3dir, key))
         except FileNotFoundError:
             return None
     with open(os.path.join(s3dir, key), "r") as json_file:
@@ -296,9 +294,7 @@ for fn in sub_folder_list:
             # data_content = json.loads(json_file_content)
             json_file_content = get_json(device_id)
             if json_file_content is None:
-                json_response = s3client.get_object(
-                    Bucket=bucket_name, Key=f"{device_id}/data.json"
-                )
+                json_response = s3client.get_object(Bucket=bucket_name, Key=f"{device_id}/data.json")
                 json_file_content = json_response["Body"].read().decode("utf-8")
                 json_file_content = json.loads(json_file_content)
             if Part_num in json_file_content.values():
@@ -313,9 +309,7 @@ for fn in sub_folder_list:
                     continue
                 # get mask/contour
                 try:
-                    mask = np.load(
-                        f"{local_directory}mapped_mask_matrix{dev_type}_{device_id}.npy"
-                    )
+                    mask = np.load(f"{local_directory}mapped_mask_matrix{dev_type}_{device_id}.npy")
                 except FileNotFoundError:
                     try:
                         s3client.download_file(
@@ -335,14 +329,10 @@ for fn in sub_folder_list:
                                 f"mapped_mask_matrix{dev_type}_{device_id}.npy",
                             ),
                         )
-                mask = np.load(
-                    f"{local_directory}mapped_mask_matrix{dev_type}_{device_id}.npy"
-                )
+                mask = np.load(f"{local_directory}mapped_mask_matrix{dev_type}_{device_id}.npy")
                 mask = mask.astype(np.uint8) * 255
                 mask_edges = cv2.Canny(mask, 30, 200)
-                mask_edges_contours, _ = cv2.findContours(
-                    mask_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-                )
+                mask_edges_contours, _ = cv2.findContours(mask_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
                 outermost_contour = mask_edges_contours[0]  # buidling the contour
                 # axs[port].plot(statistics.mean(np.nonzero(mask_map)[1]), statistics.mean(np.nonzero(mask_map)[0]),'o', markersize=10, color='magenta', zorder=8888)
                 # get centroid
@@ -362,9 +352,7 @@ for fn in sub_folder_list:
                 dX = rgb_cen[0] - therm_cen[0]
                 dY = rgb_cen[1] - therm_cen[1]
                 dif_mag = np.sqrt(dX**2 + dY**2)
-                angle_rad = np.arctan2(
-                    dY, dX
-                )  # atan2(dY, dX) gives the angle in the standard coordinate system
+                angle_rad = np.arctan2(dY, dX)  # atan2(dY, dX) gives the angle in the standard coordinate system
                 angle_deg = np.degrees(angle_rad)
                 vec = (dif_mag, angle_deg)
                 mag_list.append(dif_mag)
@@ -382,7 +370,5 @@ print("done")
 # plt.show()
 df = pd.DataFrame(vec_list)
 df.to_csv("Test_vec_integrated_hubs.csv", index=False)
-print(
-    "error list:", error_list
-)  # List of Heads in S3 that did not have 1 or more of the required files.
+print("error list:", error_list)  # List of Heads in S3 that did not have 1 or more of the required files.
 # A fix for this exists in the S3 looping file and the QA check scripts but it was not implmented here as I moved on to other projects.

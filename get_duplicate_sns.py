@@ -39,11 +39,7 @@ date_idx = 2
 matches_dict = {}
 all_devices = np.genfromtxt(id_list_path, delimiter=",", skip_header=1, dtype=str)
 
-duplicate_sns = [
-    sn
-    for sn in all_devices.transpose()[sn_idx]
-    if len(np.where(all_devices.transpose() == sn)[0]) > 1
-]
+duplicate_sns = [sn for sn in all_devices.transpose()[sn_idx] if len(np.where(all_devices.transpose() == sn)[0]) > 1]
 
 for sn in duplicate_sns:
     matched_ids = []
@@ -59,13 +55,4 @@ for sn in duplicate_sns:
         matches_dict[sn] = matched_ids
 with open(output_path, "w") as out_file:
     tab = "\t"
-    out_file.write(
-        "\n".join(
-            sorted(
-                [
-                    f"{sn}{tab}{tab.join([str(id) for id in ids])}"
-                    for sn, ids in matches_dict.items()
-                ]
-            )
-        )
-    )
+    out_file.write("\n".join(sorted([f"{sn}{tab}{tab.join([str(id) for id in ids])}" for sn, ids in matches_dict.items()])))

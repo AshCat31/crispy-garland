@@ -32,14 +32,10 @@ def main():
         print(i + 1, device_id)
         device_type = device_type_dict[device_id[:3]][0]
         try:
-            mask_response = get_mask(
-                "", device_id, device_type, bucket_name, coverage_percents
-            )
+            mask_response = get_mask("", device_id, device_type, bucket_name, coverage_percents)
         except Exception as e:
             try:
-                mask_response = get_mask(
-                    "2", device_id, device_type, bucket_name, coverage_percents
-                )
+                mask_response = get_mask("2", device_id, device_type, bucket_name, coverage_percents)
             except Exception as e:
                 print(e, device_id)
                 continue

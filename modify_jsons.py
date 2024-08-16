@@ -7,12 +7,8 @@ from s3_setup import S3Setup
 def main(s3c=None, bkn=None):
     logger = logging.getLogger(__name__)
     log_format = "%(levelname)-6s: %(message)s"
-    logging.addLevelName(
-        logging.WARNING, "\033[1;31m%s\033[1;0m" % logging.getLevelName(logging.WARNING)
-    )
-    logging.addLevelName(
-        logging.ERROR, "\033[1;41m%s\033[1;0m" % logging.getLevelName(logging.ERROR)
-    )
+    logging.addLevelName(logging.WARNING, "\033[1;31m%s\033[1;0m" % logging.getLevelName(logging.WARNING))
+    logging.addLevelName(logging.ERROR, "\033[1;41m%s\033[1;0m" % logging.getLevelName(logging.ERROR))
     logging.basicConfig(level=logging.WARN, format=log_format)
 
     if s3c is None:
@@ -25,12 +21,8 @@ def main(s3c=None, bkn=None):
             values = line.split()
             device_id = values[0]
             try:
-                json_response = s3client.get_object(
-                    Bucket=_bucket_name, Key=f"{device_id}/data.json"
-                )
-                json_file_content = (
-                    json_response["Body"].read().decode("utf-8")
-                )  # downloading the json
+                json_response = s3client.get_object(Bucket=_bucket_name, Key=f"{device_id}/data.json")
+                json_file_content = json_response["Body"].read().decode("utf-8")  # downloading the json
                 data_content = json.loads(json_file_content)
                 key = "serial_number"
                 print(f"{device_id}'s current value for {key} is {data_content[key]}")

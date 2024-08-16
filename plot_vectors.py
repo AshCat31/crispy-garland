@@ -15,9 +15,7 @@ def vector_plot(magnitude, angle_degrees, color="black", zorder=10):
 
 # Example usage:
 fig, ax = plt.subplots(1, 1)
-vectors = np.genfromtxt(
-    "Test_vec_integrated.csv", delimiter=",", skip_header=1, dtype="<U25"
-)
+vectors = np.genfromtxt("Test_vec_integrated.csv", delimiter=",", skip_header=1, dtype="<U25")
 bin_ct = 15
 xs = []
 ys = []
@@ -37,12 +35,7 @@ sm = ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
 cbar = plt.colorbar(sm, ax=ax, label="Number of Bad ROIs")
 # Show ticks at powers of 10
-ticks = [
-    10**i
-    for i in range(
-        int(np.floor(np.log10(min(c) + 1))), int(np.ceil(np.log10(max(c)))) + 1
-    )
-]
+ticks = [10**i for i in range(int(np.floor(np.log10(min(c) + 1))), int(np.ceil(np.log10(max(c)))) + 1)]
 cbar.set_ticks(ticks)
 cbar.set_ticklabels(ticks)
 

@@ -12,9 +12,7 @@ def download_json(deviceId):
 
 
 head_ct = hub_ct = 0
-with open(
-    "/home/canyon/Test_Equipment/crispy-garland/SNs_with_IDs.txt", "r"
-) as id_file:
+with open("/home/canyon/Test_Equipment/crispy-garland/SNs_with_IDs.txt", "r") as id_file:
     for line in id_file:
         device = line.split()
         id = device[0]

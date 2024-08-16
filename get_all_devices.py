@@ -34,9 +34,7 @@ def get_date(id, filenames, csv_data, fileids):
     date = "none"
     try:
         idx = np.where(filenames == id + "/6_inch.png")[0][0]
-    except (
-        IndexError
-    ):  # get another file's last modi instead, which starts with same id
+    except IndexError:  # get another file's last modi instead, which starts with same id
         idx = None
         for i in range(len(fileids)):  # can't get np method to work
             if fileids[i] == id:
@@ -50,14 +48,10 @@ def get_date(id, filenames, csv_data, fileids):
 
 def main():
     everything = []
-    csv_data = np.genfromtxt(
-        "kcam-calibration-data-keys.csv", delimiter=",", skip_header=1, dtype=str
-    )
+    csv_data = np.genfromtxt("kcam-calibration-data-keys.csv", delimiter=",", skip_header=1, dtype=str)
     filenames = csv_data[:, 1]
     fileids = [file.split("/")[0].split(".")[0] for file in filenames]
-    all_ids = np.genfromtxt(
-        "unique_ids.csv", delimiter=",", skip_header=1, usecols=-1, dtype=str
-    )
+    all_ids = np.genfromtxt("unique_ids.csv", delimiter=",", skip_header=1, usecols=-1, dtype=str)
 
     for idx, id in enumerate(all_ids):
         try:

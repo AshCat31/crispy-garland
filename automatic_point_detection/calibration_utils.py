@@ -10,9 +10,7 @@ import numpy as np
 CALIBRATION_DATA_PATH = "/home/jacek/delta-thermal/calibration_data/"
 
 
-def load_thermal_image(
-    path: str, thermal_flip_ud: bool = False, thermal_flip_lr: bool = False
-):
+def load_thermal_image(path: str, thermal_flip_ud: bool = False, thermal_flip_lr: bool = False):
     """Loads thermal image the same way delta-thermal-rgb-mapping does.
 
     Args:
@@ -38,9 +36,7 @@ def load_thermal_image(
     dest_size = (240, 320)
     trml_matrix_scaled = cv2.resize(trml_arr, dest_size, interpolation=cv2.INTER_CUBIC)
     trml_matrix_scaled = np.array(
-        (trml_matrix_scaled - np.min(trml_matrix_scaled))
-        / (np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled))
-        * 255
+        (trml_matrix_scaled - np.min(trml_matrix_scaled)) / (np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled)) * 255
     ).astype(np.uint8)
 
     return trml_matrix_scaled

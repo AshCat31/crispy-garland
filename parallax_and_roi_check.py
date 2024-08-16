@@ -41,9 +41,7 @@ def main():
 
 
 class ROIChecker:
-    def __init__(
-        self, device_id, i, s3client, bucket_name, failures, show_plot=False
-    ) -> None:
+    def __init__(self, device_id, i, s3client, bucket_name, failures, show_plot=False) -> None:
         self.s3client = s3client
         self.bucket_name = bucket_name
         self.device_id = device_id
@@ -99,9 +97,7 @@ class ROIChecker:
             "100": ("_mosaic", hub_base_image, hub_rois, 1),
             "E66": ("_hydra", head_base_image, head_rois, 3),
         }
-        self.device_type, self.base_image, self.roi_files, self.num_ports = (
-            self.device_type_dict[self.device_id[:3]]
-        )
+        self.device_type, self.base_image, self.roi_files, self.num_ports = self.device_type_dict[self.device_id[:3]]
         self.failures = []
         self.device_rois = []
         self.images = []
@@ -144,9 +140,7 @@ class ROIChecker:
         key = f"{self.device_id}/calculated_transformations{ct}/{self.device_id}/mapped_mask_matrix{self.device_type}_{self.device_id}.npy"
         local_directory = "/home/canyon/S3bucket/"
         try:  # checking first is slower
-            self.mask_map = (
-                np.load(os.path.join(local_directory, key)).astype(np.uint8) * 255
-            )
+            self.mask_map = np.load(os.path.join(local_directory, key)).astype(np.uint8) * 255
         except FileNotFoundError:
             os.makedirs(
                 os.path.join(
@@ -159,9 +153,7 @@ class ROIChecker:
                 Key=key,
                 Filename=os.path.join(local_directory, key),
             )
-            self.mask_map = (
-                np.load(os.path.join(local_directory, key)).astype(np.uint8) * 255
-            )
+            self.mask_map = np.load(os.path.join(local_directory, key)).astype(np.uint8) * 255
         self.mask_edges_contours, _ = cv2.findContours(
             cv2.Canny(self.mask_map, 30, 200), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
         )
@@ -252,9 +244,7 @@ class ROIChecker:
             self.axs = [self.axs]
         slider_min, slider_max = -50, 50
         x_slider_ax = self.fig.add_axes([0.1, 0.05, 0.8, 0.03])
-        self.x_slider = plt.Slider(
-            x_slider_ax, "x", slider_min, slider_max, valinit=self.x_trans, valstep=1
-        )
+        self.x_slider = plt.Slider(x_slider_ax, "x", slider_min, slider_max, valinit=self.x_trans, valstep=1)
         y_slider_ax = self.fig.add_axes([0.03, 0.1, 0.03, 0.8])
         self.y_slider = plt.Slider(
             y_slider_ax,
@@ -270,9 +260,7 @@ class ROIChecker:
         self.update_plot()
         self.fig.canvas.manager.window.wm_geometry("+0+0")
         self.fig.canvas.manager.window.geometry("1910x1000")
-        plt.subplots_adjust(
-            wspace=0, hspace=0.01, bottom=0, top=0.95, left=0.05, right=0.98
-        )
+        plt.subplots_adjust(wspace=0, hspace=0.01, bottom=0, top=0.95, left=0.05, right=0.98)
         plt.show()
 
 

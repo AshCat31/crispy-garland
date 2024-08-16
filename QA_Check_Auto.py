@@ -19,12 +19,8 @@ def configure_logger():
     logger = logging.getLogger(__name__)
     log_format = "%(levelname)-6s: %(message)s"
     logging.basicConfig(format=log_format)
-    logging.addLevelName(
-        logging.WARNING, "\033[1;31m%s\033[1;0m" % logging.getLevelName(logging.WARNING)
-    )
-    logging.addLevelName(
-        logging.ERROR, "\033[1;41m%s\033[1;0m" % logging.getLevelName(logging.ERROR)
-    )
+    logging.addLevelName(logging.WARNING, "\033[1;31m%s\033[1;0m" % logging.getLevelName(logging.WARNING))
+    logging.addLevelName(logging.ERROR, "\033[1;41m%s\033[1;0m" % logging.getLevelName(logging.ERROR))
     return logger
 
 
@@ -45,9 +41,7 @@ class JSONChecker:
         self.valid_jpeg = self.man_rev = self.review_input = False
 
         self.device_type = self.get_device_type(self.device_id)
-        self.inner_dir = (
-            self.device_id
-        )  # inner folder is deviceID for heads but cameraID for hubs
+        self.inner_dir = self.device_id  # inner folder is deviceID for heads but cameraID for hubs
         self.json_path = f"{self.device_id}/data.json"
         self.six_inch_png_path = f"{self.device_id}/6_inch.png"
         self.six_inch_npy_path = f"{self.device_id}/6_inch.npy"
@@ -64,16 +58,10 @@ class JSONChecker:
             self.validate_json()
             self.exists_6in_png = self.log_exists(self.six_inch_png_path, "6inch.png")
             self.exists_6in_npy = self.log_exists(self.six_inch_npy_path, "6inch.npy")
-            self.exists_9ele_rgb = self.log_exists(
-                f"{self.device_id}/rgb_{self.inner_dir}_9element_coord.npy"
-            )
-            self.exists_9ele_trml = self.log_exists(
-                f"{self.device_id}/trml_{self.inner_dir}_9element_coord.npy"
-            )
+            self.exists_9ele_rgb = self.log_exists(f"{self.device_id}/rgb_{self.inner_dir}_9element_coord.npy")
+            self.exists_9ele_trml = self.log_exists(f"{self.device_id}/trml_{self.inner_dir}_9element_coord.npy")
 
-            self.inner_dir_path = (
-                f"{self.device_id}/calculated_transformations/{self.inner_dir}"
-            )
+            self.inner_dir_path = f"{self.device_id}/calculated_transformations/{self.inner_dir}"
             self.exists_calc_trans = self.check_path(self.inner_dir_path)
             if self.exists_calc_trans:
                 self.check_inner_paths()
@@ -96,12 +84,8 @@ class JSONChecker:
                 self.read_data(data_content)
                 self.log_info()
 
-                self.id_check = self.check_js_matches(
-                    self.device_id, self.js_device_id, "Device ID"
-                )
-                self.serial_number_check = self.check_js_matches(
-                    self.serial_number, self.js_serial_number, "Serial Number"
-                )
+                self.id_check = self.check_js_matches(self.device_id, self.js_device_id, "Device ID")
+                self.serial_number_check = self.check_js_matches(self.serial_number, self.js_serial_number, "Serial Number")
             except KeyError:
                 self.logger.error("Json File Incomplete")
                 print("\tKeys are", ", ".join(list(data_content.keys())))
@@ -117,9 +101,7 @@ class JSONChecker:
 
     def check_path(self, file_path):
         """Check if a file exists in S3"""
-        return "Contents" in self._get_s3_objects(
-            file_path
-        )  # if anything was found, it can only be the file
+        return "Contents" in self._get_s3_objects(file_path)  # if anything was found, it can only be the file
 
     def log_exists(self, path, file_name=""):
         exists = self.check_path(path)
@@ -136,9 +118,7 @@ class JSONChecker:
 
     def read_data(self, data_content):
         self.camera_id = data_content["camera_id"]
-        if (
-            self.device_type == "mosaic"
-        ):  # set the hub's folder id before any exceptions
+        if self.device_type == "mosaic":  # set the hub's folder id before any exceptions
             self.inner_dir = self.camera_id
         self.js_device_id = data_content["device_id"]
         self.hostname = data_content["hostname"]
@@ -221,9 +201,7 @@ class JSONChecker:
         if input("Type 'Y' for yes or 'N' for No:\n")[0].upper() == "Y":
             self.img_path = self.find_img()
 
-            self.valid_jpeg = (
-                self.img_path != None
-            )  # check to make sure there are jpeg files in S3
+            self.valid_jpeg = self.img_path != None  # check to make sure there are jpeg files in S3
             if self.valid_jpeg:
                 self.mask_edges_contours, _ = cv2.findContours(
                     cv2.Canny(self.mask, 30, 200),
@@ -233,9 +211,7 @@ class JSONChecker:
                 self.man_rev = self.manual_review()
                 self.logger.info("Manual Review Complete")
             else:  # If there are no jpeg files in S3
-                self.logger.error(
-                    "No Jpeg files exist in S3. Cannot continue Manual Review"
-                )
+                self.logger.error("No Jpeg files exist in S3. Cannot continue Manual Review")
                 self.man_rev_req = False
         else:
             print("Manual Review Declined")
@@ -283,11 +259,7 @@ class JSONChecker:
     def get_status(self):
         if not self.man_rev:
             if not self.auto_check_pass:
-                if (
-                    self.valid_jpeg
-                    and self.exists_roi_matrix
-                    and self.exists_mask_matrix
-                ):  # user hit N
+                if self.valid_jpeg and self.exists_roi_matrix and self.exists_mask_matrix:  # user hit N
                     self.man_rev_status = "User Declined Review"
                 else:  # can't run review
                     self.man_rev_status = "Missing Prerequisites"

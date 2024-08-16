@@ -52,9 +52,7 @@ class ParalaxCalibrator:
         )  # (1136,934) #(1178,908) # Calculated using Matlab's script. Relevant for all rgb images
         self.rgb_c = -0.38
         self.rgb_d = 1 - self.rgb_c
-        self.rgb_radius_norm_factor = (
-            self.rgb_img_size[0] / 2
-        )  # The smallest dimension divided by 2
+        self.rgb_radius_norm_factor = self.rgb_img_size[0] / 2  # The smallest dimension divided by 2
 
         # Default emissivity value, in case that no emissivity_matrix available
         self.default_emissivity = 0.9
@@ -74,9 +72,7 @@ class ParalaxCalibrator:
         # Sensor sensetivity gaussian sigma
         self.sens_sigma = 250
 
-    def __call__(
-        self, thermalImageLocation, colorImageLocation, thermalPoints, rgbPoints
-    ):
+    def __call__(self, thermalImageLocation, colorImageLocation, thermalPoints, rgbPoints):
         """
 
         This class will create the calibration files for Delta Thermal, Inc.
@@ -112,9 +108,7 @@ class ParalaxCalibrator:
         # Scale the thermal image by a factor or 10 (from 32x24 to 320x240) for better smoothness of the heatmap
         trml_matrix_scaled = get_scaled_trml_image_optimized(self.thermalImage)
         trml_matrix_scaled = np.array(
-            (trml_matrix_scaled - np.min(trml_matrix_scaled))
-            / (np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled))
-            * 255
+            (trml_matrix_scaled - np.min(trml_matrix_scaled)) / (np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled)) * 255
         ).astype(np.uint8)
         # Save the scaled image for opening it
         cv2.imwrite("trml_matrix_scaled.jpg", trml_matrix_scaled)
@@ -124,10 +118,7 @@ class ParalaxCalibrator:
         logging.debug(self.thermalImage.shape)
         logging.debug(self.colorImage.shape)
 
-        assert (
-            self.thermalImage.shape == self.trml_img_size
-            and self.colorImage.shape == self.rgb_img_size
-        )
+        assert self.thermalImage.shape == self.trml_img_size and self.colorImage.shape == self.rgb_img_size
         assert rgbPoints.shape == (9, 2) and thermalPoints.shape == (9, 2)
 
         if np.max(self.colorImage) <= 1:
@@ -157,55 +148,43 @@ class ParalaxCalibrator:
         )
 
         # Calculate the affine transformation from rgb_elements_corners_undistorted_coordinates --> trml_elements_corners_undistorted_coordinates
-        rgb_to_angular_mapping_perspective_transformation_matrix = (
-            self.calculate_geometrical_transformation(
-                rgb_corner_distortions,
-                angular_mapping_corners_coordinates,
-            )
+        rgb_to_angular_mapping_perspective_transformation_matrix = self.calculate_geometrical_transformation(
+            rgb_corner_distortions,
+            angular_mapping_corners_coordinates,
         )
 
         # Build array for thermal aligned distorted corners (fixed predefined coordinates that span the image on the frame)
-        trml_aligned_distorted_corners_coordinates = (
-            self.get_trml_aligned_distorted_corners_coordinates()
-        )
+        trml_aligned_distorted_corners_coordinates = self.get_trml_aligned_distorted_corners_coordinates()
 
         # Get the corners of the 3x3 array for calculating the transformations
         trml_elements_corners_coordinates = self.get_corners_coordinates(thermalPoints)
 
         # Calculate the perspective transformation from trml_aligned_distorted_corners_coordinates --> trml_elements_corners_coordinates
-        trml_aligned_to_original_perspective_transformation_matrix = (
-            self.calculate_geometrical_transformation(
-                trml_aligned_distorted_corners_coordinates,
-                trml_elements_corners_coordinates,
-            )
+        trml_aligned_to_original_perspective_transformation_matrix = self.calculate_geometrical_transformation(
+            trml_aligned_distorted_corners_coordinates,
+            trml_elements_corners_coordinates,
         )
 
         # Calculate the perspective transformation from trml_elements_corners_coordinates --> trml_aligned_distorted_corners_coordinates (inverse of prev)
-        trml_original_to_aligned_perspective_transformation_matrix = (
-            self.calculate_geometrical_transformation(
-                trml_elements_corners_coordinates,
-                trml_aligned_distorted_corners_coordinates,
-            )
+        trml_original_to_aligned_perspective_transformation_matrix = self.calculate_geometrical_transformation(
+            trml_elements_corners_coordinates,
+            trml_aligned_distorted_corners_coordinates,
         )
 
         # Calculate the aligned thermal element coordinates
         trml_aligned_coordinates = np.zeros((9, 2))
         for i in range(9):
-            trml_aligned_coordinates[i, :] = (
-                self.calculated_perspective_transform_coordinations(
-                    trml_original_to_aligned_perspective_transformation_matrix,
-                    thermalPoints[i, :],
-                )
+            trml_aligned_coordinates[i, :] = self.calculated_perspective_transform_coordinations(
+                trml_original_to_aligned_perspective_transformation_matrix,
+                thermalPoints[i, :],
             )
 
         # Calculate themal angular mapping coefs
         logging.debug(f"trml_aligned_coordinates:{trml_aligned_coordinates}")
         logging.debug(f"trml_distortion_center:{self.trml_distortion_center}")
-        a_coefs_vector, b_coefs_vector, c_coefs_vector = (
-            self.get_trml_angular_mapping_coef(
-                trml_aligned_coordinates,
-                self.trml_distortion_center,
-            )
+        a_coefs_vector, b_coefs_vector, c_coefs_vector = self.get_trml_angular_mapping_coef(
+            trml_aligned_coordinates,
+            self.trml_distortion_center,
         )
         logging.debug(f"a_coefs_vector:{a_coefs_vector}")
         logging.debug(f"b_coefs_vector:{b_coefs_vector}")
@@ -231,22 +210,14 @@ class ParalaxCalibrator:
             mapping_resolution = 1
 
         # Calculating the limit of the thermal data
-        max_angular_mapping_value = (
-            self.angular_mapping_corner_val * max_angular_mapping_factor
-        )
+        max_angular_mapping_value = self.angular_mapping_corner_val * max_angular_mapping_factor
 
         # Mapping matricies
         # For each pixel, what is the row,col of the thermal image
         mapped_coordinates = np.zeros(
             (
-                int(
-                    (self.rgb_img_size[0] + 2 * self.rgb_padding[0])
-                    / mapping_resolution
-                ),
-                int(
-                    (self.rgb_img_size[1] + 2 * self.rgb_padding[1])
-                    / mapping_resolution
-                ),
+                int((self.rgb_img_size[0] + 2 * self.rgb_padding[0]) / mapping_resolution),
+                int((self.rgb_img_size[1] + 2 * self.rgb_padding[1]) / mapping_resolution),
                 2,
             )
         ).astype(int)
@@ -254,57 +225,32 @@ class ParalaxCalibrator:
         # For every pixel, 0 = No trml data for this pixel, 1 = There is thermal data for this pixel
         in_trml_mask_matrix = np.zeros(
             (
-                int(
-                    (self.rgb_img_size[0] + 2 * self.rgb_padding[0])
-                    / mapping_resolution
-                ),
-                int(
-                    (self.rgb_img_size[1] + 2 * self.rgb_padding[1])
-                    / mapping_resolution
-                ),
+                int((self.rgb_img_size[0] + 2 * self.rgb_padding[0]) / mapping_resolution),
+                int((self.rgb_img_size[1] + 2 * self.rgb_padding[1]) / mapping_resolution),
             )
         ).astype(int)
 
         # Sensitivity correction, because of the known sensitivity drop for from the center of FOX
         trml_sensitivity_correction_matrix = np.zeros(
             (
-                int(
-                    (self.rgb_img_size[0] + 2 * self.rgb_padding[0])
-                    / mapping_resolution
-                ),
-                int(
-                    (self.rgb_img_size[1] + 2 * self.rgb_padding[1])
-                    / mapping_resolution
-                ),
+                int((self.rgb_img_size[0] + 2 * self.rgb_padding[0]) / mapping_resolution),
+                int((self.rgb_img_size[1] + 2 * self.rgb_padding[1]) / mapping_resolution),
             )
         )
 
         # DEBUG! Init the target array
         mapped_thermal_matrix = np.zeros(
             (
-                int(
-                    (self.rgb_img_size[0] + 2 * self.rgb_padding[0])
-                    / mapping_resolution
-                ),
-                int(
-                    (self.rgb_img_size[1] + 2 * self.rgb_padding[1])
-                    / mapping_resolution
-                ),
+                int((self.rgb_img_size[0] + 2 * self.rgb_padding[0]) / mapping_resolution),
+                int((self.rgb_img_size[1] + 2 * self.rgb_padding[1]) / mapping_resolution),
             )
         )
 
         half_rgb_padding = (int(self.rgb_padding[0] / 2), int(self.rgb_padding[1] / 2))
 
         # For every pixel, calculate the value from the thremal image and fill the array
-        for row in range(
-            int((self.rgb_img_size[0] + 2 * self.rgb_padding[0]) / mapping_resolution)
-        ):
-            for col in range(
-                int(
-                    (self.rgb_img_size[1] + 2 * self.rgb_padding[1])
-                    / mapping_resolution
-                )
-            ):
+        for row in range(int((self.rgb_img_size[0] + 2 * self.rgb_padding[0]) / mapping_resolution)):
+            for col in range(int((self.rgb_img_size[1] + 2 * self.rgb_padding[1]) / mapping_resolution)):
                 # Get the loop pixel coordinate
                 loop_rgb_coordinate = np.array(
                     [
@@ -314,51 +260,40 @@ class ParalaxCalibrator:
                 )  # (x,y)
 
                 # Preform the chain of transformations for getting the coordinates in the thermal image
-                loop_undistorted_rgb_coordinate = (
-                    self.calculate_undistorted_coordinates(
-                        loop_rgb_coordinate,
-                        self.rgb_distortion_center,
-                        self.rgb_c,
-                        self.rgb_d,
-                        self.rgb_radius_norm_factor,
-                    )
+                loop_undistorted_rgb_coordinate = self.calculate_undistorted_coordinates(
+                    loop_rgb_coordinate,
+                    self.rgb_distortion_center,
+                    self.rgb_c,
+                    self.rgb_d,
+                    self.rgb_radius_norm_factor,
                 )
 
                 if loop_undistorted_rgb_coordinate is not None:
-                    loop_angular_mapped_coordinate = (
-                        self.calculated_perspective_transform_coordinations(
-                            rgb_to_angular_mapping_perspective_transformation_matrix,
-                            loop_undistorted_rgb_coordinate,
-                        )
+                    loop_angular_mapped_coordinate = self.calculated_perspective_transform_coordinations(
+                        rgb_to_angular_mapping_perspective_transformation_matrix,
+                        loop_undistorted_rgb_coordinate,
                     )
-                    loop_angular_mapped_shifted_coordinate = (
-                        self.calculated_shifted_angular_mapped_coordinate(
-                            loop_angular_mapped_coordinate,
-                            parabolic_x_coef,
-                            parabolic_y_coef,
-                        )
+                    loop_angular_mapped_shifted_coordinate = self.calculated_shifted_angular_mapped_coordinate(
+                        loop_angular_mapped_coordinate,
+                        parabolic_x_coef,
+                        parabolic_y_coef,
                     )
                     # loop_angular_mapped_shifted_coordinate[0] = 100 - (100 - loop_angular_mapped_shifted_coordinate[0])*0.83
                     # loop_angular_mapped_shifted_coordinate[1] -= 27
                     # if loop_angular_mapped_shifted_coordinate[0] >= -max_angular_mapping_value and loop_angular_mapped_shifted_coordinate[0] <= max_angular_mapping_value and loop_angular_mapped_shifted_coordinate[1] >= -max_angular_mapping_value and loop_angular_mapped_shifted_coordinate[1] <= max_angular_mapping_value:
                     # Cancel skipping mapping for pixel if the pixel is out of angular range
-                    loop_trml_aligned_coordinate, calc_valid_flag = (
-                        self.get_trml_aligned_coordinated_from_angular_mapping(
-                            loop_angular_mapped_shifted_coordinate,
-                            self.angular_mapping_corner_val,
-                            a_coefs_vector,
-                            b_coefs_vector,
-                            c_coefs_vector,
-                            self.trml_distortion_center,
-                        )
+                    loop_trml_aligned_coordinate, calc_valid_flag = self.get_trml_aligned_coordinated_from_angular_mapping(
+                        loop_angular_mapped_shifted_coordinate,
+                        self.angular_mapping_corner_val,
+                        a_coefs_vector,
+                        b_coefs_vector,
+                        c_coefs_vector,
+                        self.trml_distortion_center,
                     )
                     # Check if found a mathematical solution for the thermal pixel finding
                     if calc_valid_flag:
 
-                        if (
-                            loop_trml_aligned_coordinate[0].imag != 0
-                            or loop_trml_aligned_coordinate[1].imag != 0
-                        ):
+                        if loop_trml_aligned_coordinate[0].imag != 0 or loop_trml_aligned_coordinate[1].imag != 0:
                             logging.warning("Imag part not zero!!")
 
                         loop_trml_coordinate_unbounded = self.calculated_perspective_transform_coordinations(
@@ -368,12 +303,8 @@ class ParalaxCalibrator:
 
                         # Check that the pixel is in the thermal image range
                         if (
-                            0
-                            <= loop_trml_coordinate_unbounded[0]
-                            < self.trml_img_size[1]
-                            and 0
-                            <= loop_trml_coordinate_unbounded[1]
-                            < self.trml_img_size[0]
+                            0 <= loop_trml_coordinate_unbounded[0] < self.trml_img_size[1]
+                            and 0 <= loop_trml_coordinate_unbounded[1] < self.trml_img_size[0]
                         ):
                             trml_row, trml_col = self.get_trml_coordinates(
                                 loop_trml_coordinate_unbounded,
@@ -385,14 +316,10 @@ class ParalaxCalibrator:
                             mapped_thermal_matrix[row, col] = val
 
                             # Save coordinates
-                            mapped_coordinates[row, col, :] = np.array(
-                                [trml_row, trml_col]
-                            )
+                            mapped_coordinates[row, col, :] = np.array([trml_row, trml_col])
                             in_trml_mask_matrix[row, col] = 1
-                            trml_sensitivity_correction_matrix[row, col] = (
-                                self.get_sensitivity_correction_factor(
-                                    loop_angular_mapped_shifted_coordinate
-                                )
+                            trml_sensitivity_correction_matrix[row, col] = self.get_sensitivity_correction_factor(
+                                loop_angular_mapped_shifted_coordinate
                             )
 
         if map_low_resolution:
@@ -400,22 +327,14 @@ class ParalaxCalibrator:
             mapped_thermal_matrix = np.kron(mapped_thermal_matrix, [[1, 1], [1, 1]])
 
             # Rescalse coordinates matrix
-            row_mapped_coordinates = np.kron(
-                mapped_coordinates[:, :, 0], [[1, 1], [1, 1]]
-            )
-            col_mapped_coordinates = np.kron(
-                mapped_coordinates[:, :, 1], [[1, 1], [1, 1]]
-            )
+            row_mapped_coordinates = np.kron(mapped_coordinates[:, :, 0], [[1, 1], [1, 1]])
+            col_mapped_coordinates = np.kron(mapped_coordinates[:, :, 1], [[1, 1], [1, 1]])
             row_mapped_coordinates = np.expand_dims(row_mapped_coordinates, axis=2)
             col_mapped_coordinates = np.expand_dims(col_mapped_coordinates, axis=2)
-            mapped_coordinates = np.concatenate(
-                [row_mapped_coordinates, col_mapped_coordinates], axis=2
-            )
+            mapped_coordinates = np.concatenate([row_mapped_coordinates, col_mapped_coordinates], axis=2)
 
             # Rescaling sensitivity matrix
-            trml_sensitivity_correction_matrix = np.kron(
-                trml_sensitivity_correction_matrix, [[1, 1], [1, 1]]
-            )
+            trml_sensitivity_correction_matrix = np.kron(trml_sensitivity_correction_matrix, [[1, 1], [1, 1]])
 
             # Rescalse mask matrix
             in_trml_mask_matrix = np.kron(in_trml_mask_matrix, [[1, 1], [1, 1]])
@@ -427,9 +346,7 @@ class ParalaxCalibrator:
             trml_sensitivity_correction_matrix,
         )
 
-    def calculate_undistorted_coordinates(
-        self, original_coordinates, distortion_center, C, D, radius_norm_factor
-    ):
+    def calculate_undistorted_coordinates(self, original_coordinates, distortion_center, C, D, radius_norm_factor):
         # The function gets (2,) size numpy array and distortion parameters (distortion center, C distortion value, radius normalization factor)
         # and return (2,) size numpy array contains the undistorted coordinates
 
@@ -474,9 +391,7 @@ class ParalaxCalibrator:
         # return the result array
         return undistorted_coordinates_array
 
-    def calculate_undistorted_coordinates_of_array(
-        self, original_coordinates_array, distortion_center, C, D, radius_norm_factor
-    ):
+    def calculate_undistorted_coordinates_of_array(self, original_coordinates_array, distortion_center, C, D, radius_norm_factor):
         """
         The function gets (num,2) size numpy array and distortion parameters (distortion center, C distortion value, radius normalization factor)
         and return (num,2) size numpy array contains the undistorted coordinates
@@ -543,9 +458,7 @@ class ParalaxCalibrator:
 
         return corners_array
 
-    def calculated_perspective_transform_coordinations(
-        self, perspective_transformation_matrix, vector
-    ):
+    def calculated_perspective_transform_coordinations(self, perspective_transformation_matrix, vector):
         extended_vector = np.array([vector[0], vector[1], 1])
         transformed_vector = perspective_transformation_matrix.dot(extended_vector)
 
@@ -573,9 +486,7 @@ class ParalaxCalibrator:
         z_left = trml1_proj_points[3, 1] - row_center
         m_left = trml1_proj_points[3, 0] - col_center
 
-        mat_left = np.array(
-            [[p_left**2, p_left, 1], [k_left**2, k_left, 1], [z_left**2, z_left, 1]]
-        )
+        mat_left = np.array([[p_left**2, p_left, 1], [k_left**2, k_left, 1], [z_left**2, z_left, 1]])
         vec_left = np.array([[t_left], [n_left], [m_left]])
 
         res_left = inv(mat_left).dot(vec_left)
@@ -618,9 +529,7 @@ class ParalaxCalibrator:
         z_top = trml1_proj_points[1, 0] - col_center
         m_top = trml1_proj_points[1, 1] - row_center
 
-        mat_top = np.array(
-            [[p_top**2, p_top, 1], [k_top**2, k_top, 1], [z_top**2, z_top, 1]]
-        )
+        mat_top = np.array([[p_top**2, p_top, 1], [k_top**2, k_top, 1], [z_top**2, z_top, 1]])
         vec_top = np.array([[t_top], [n_top], [m_top]])
 
         res_top = inv(mat_top).dot(vec_top)
@@ -732,9 +641,7 @@ class ParalaxCalibrator:
         x_pow_1_coef = -fx + (2 * ax * by * cy) / (fy**2) + (bx * by) / fy
         x_pow_0_coef = (ax * cy * cy) / (fy**2) + (bx * cy) / fy + cx
 
-        polylon = np.array(
-            [x_pow_4_coef, x_pow_3_coef, x_pow_2_coef, x_pow_1_coef, x_pow_0_coef]
-        )
+        polylon = np.array([x_pow_4_coef, x_pow_3_coef, x_pow_2_coef, x_pow_1_coef, x_pow_0_coef])
 
         polynom_roots_x_vals = np.roots(polylon)
 
@@ -766,23 +673,17 @@ class ParalaxCalibrator:
 
         return np.array([valid_x, valid_y]), found_valid_xy
 
-    def calculate_parabolic_coef_for_shifted_angular_mapping(
-        self, center_angle, corner_max_val
-    ):
+    def calculate_parabolic_coef_for_shifted_angular_mapping(self, center_angle, corner_max_val):
         a = -center_angle / (corner_max_val**2)
         c = center_angle
         b = 1
 
         return a, b, c
 
-    def calculated_shifted_angular_mapped_coordinate(
-        self, original_coordinates, parabolic_x_coef, parabolic_y_coef
-    ):
+    def calculated_shifted_angular_mapped_coordinate(self, original_coordinates, parabolic_x_coef, parabolic_y_coef):
         return np.array(
             [
-                self.calculated_shifted_angular_mapped_single_coordinate(
-                    original_coordinates[0], parabolic_x_coef
-                ),
+                self.calculated_shifted_angular_mapped_single_coordinate(original_coordinates[0], parabolic_x_coef),
                 self.calculated_shifted_angular_mapped_single_coordinate(
                     original_coordinates[1],
                     parabolic_y_coef,
@@ -790,15 +691,11 @@ class ParalaxCalibrator:
             ]
         )
 
-    def calculated_shifted_angular_mapped_single_coordinate(
-        self, original_angle, parabolic_coef
-    ):
+    def calculated_shifted_angular_mapped_single_coordinate(self, original_angle, parabolic_coef):
         a, b, c = parabolic_coef
         return a * (original_angle**2) + b * original_angle + c
 
-    def get_trml_coordinates(
-        self, unbounded_coordinates, trml_img_size, round_bool=True
-    ):
+    def get_trml_coordinates(self, unbounded_coordinates, trml_img_size, round_bool=True):
         trml_row = np.clip(np.round(unbounded_coordinates[1]), 0, trml_img_size[0] - 1)
         trml_col = np.clip(np.round(unbounded_coordinates[0]), 0, trml_img_size[1] - 1)
 
@@ -810,9 +707,7 @@ class ParalaxCalibrator:
     def get_sensitivity_correction_factor(self, angular_coordinates):
         approx_true_angle_x = (angular_coordinates[0] * 75) / 100
         approx_true_angle_y = (angular_coordinates[1] * 110) / 100
-        angular_diff_distance = pow(
-            (pow(approx_true_angle_x, 2) + pow(approx_true_angle_y, 2)), 0.5
-        )
+        angular_diff_distance = pow((pow(approx_true_angle_x, 2) + pow(approx_true_angle_y, 2)), 0.5)
 
         # Get gaussian value
         gaussian_val = math.exp(-0.5 * pow(angular_diff_distance / self.sens_sigma, 2))
@@ -861,9 +756,7 @@ def cal_device(dev_id):
     # -----------------------------------------------------------
     rgb_coordinates_file_path = base_path + "/rgb_" + dev_id + "_9element_coord.npy"
     trml_coordinates_file_path = base_path + "/trml_" + dev_id + "_9element_coord.npy"
-    coordinatFiles = os.path.isfile(rgb_coordinates_file_path) and os.path.isfile(
-        trml_coordinates_file_path
-    )
+    coordinatFiles = os.path.isfile(rgb_coordinates_file_path) and os.path.isfile(trml_coordinates_file_path)
     if not os.path.isfile(trml_coordinates_file_path):
         print("select thermal")
         # Read thermal image
@@ -877,22 +770,16 @@ def cal_device(dev_id):
         # Scale the thermal image by a factor or 10 (from 32x24 to 320x240) for better smoothness of the heatmap
         trml_matrix_scaled = get_scaled_trml_image_optimized(trml_arr)
         trml_matrix_scaled = np.array(
-            (trml_matrix_scaled - np.min(trml_matrix_scaled))
-            / (np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled))
-            * 255
+            (trml_matrix_scaled - np.min(trml_matrix_scaled)) / (np.max(trml_matrix_scaled) - np.min(trml_matrix_scaled)) * 255
         ).astype(np.uint8)
         # Save the scaled image for opening it
         cv2.imwrite("trml_matrix_scaled.jpg", trml_matrix_scaled)
         # Read thermal image
         trml_img = mpimg.imread("trml_matrix_scaled.jpg")
         # Get the 9 (x,y) coordinates of the 9 elements and save them
-        trml_elements_coordinates = sample_coordinate_of_corners(
-            trml_img
-        )  # thermal element coordinates
+        trml_elements_coordinates = sample_coordinate_of_corners(trml_img)  # thermal element coordinates
         if trml_elements_coordinates is not None:
-            save_sampled_coordinates(
-                trml_elements_coordinates, trml_coordinates_file_path
-            )
+            save_sampled_coordinates(trml_elements_coordinates, trml_coordinates_file_path)
     else:
         print("Using existing Thermal coordinates")
         trml_elements_coordinates = np.load(trml_coordinates_file_path)
@@ -906,14 +793,10 @@ def cal_device(dev_id):
             rgb_img = (rgb_img * 255).astype(np.uint8)
 
         # Get the 9 (x,y) coordinates of the 9 elements and save them
-        rgb_elements_coordinates = sample_coordinate_of_corners(
-            rgb_img
-        )  # rgb element coordinates
+        rgb_elements_coordinates = sample_coordinate_of_corners(rgb_img)  # rgb element coordinates
 
         if rgb_elements_coordinates is not None:
-            save_sampled_coordinates(
-                rgb_elements_coordinates, rgb_coordinates_file_path
-            )
+            save_sampled_coordinates(rgb_elements_coordinates, rgb_coordinates_file_path)
     else:
         print("Using existing RGB coordinates")
         rgb_elements_coordinates = np.load(rgb_coordinates_file_path)
@@ -939,13 +822,7 @@ def cal_device(dev_id):
     if not os.path.exists(outputDir + "/" + dev_id):
         os.mkdir(outputDir + "/" + dev_id)
     np.save(
-        outputDir
-        + "/"
-        + dev_id
-        + "/mapped_coordinates_matrix_"
-        + unit_type
-        + dev_id
-        + ".npy",
+        outputDir + "/" + dev_id + "/mapped_coordinates_matrix_" + unit_type + dev_id + ".npy",
         coordinateMap,
     )
     np.save(
@@ -953,13 +830,7 @@ def cal_device(dev_id):
         maskMartix,
     )
     np.save(
-        outputDir
-        + "/"
-        + dev_id
-        + "/sensitivity_correction_matrix_"
-        + unit_type
-        + dev_id
-        + ".npy",
+        outputDir + "/" + dev_id + "/sensitivity_correction_matrix_" + unit_type + dev_id + ".npy",
         sensitivityMatrix,
     )
 
@@ -983,20 +854,12 @@ def sample_coordinate_of_corners(img, num_corners=9, padding=0):
     if padding > 0:
         if np.ndim(img) == 2:
             img_height, img_width = np.shape(img)
-            padded_img = np.zeros(
-                (img_height + 2 * padding, img_width + 2 * padding)
-            ).astype(np.uint8)
-            padded_img[
-                padding : padding + img_height, padding : padding + img_width
-            ] = img[:, :]
+            padded_img = np.zeros((img_height + 2 * padding, img_width + 2 * padding)).astype(np.uint8)
+            padded_img[padding : padding + img_height, padding : padding + img_width] = img[:, :]
         elif np.ndim(img) == 3:
             img_height, img_width, n_cnl = np.shape(img)
-            padded_img = np.zeros(
-                (img_height + 2 * padding, img_width + 2 * padding, n_cnl)
-            ).astype(np.uint8)
-            padded_img[
-                padding : padding + img_height, padding : padding + img_width, :
-            ] = img[:, :, :]
+            padded_img = np.zeros((img_height + 2 * padding, img_width + 2 * padding, n_cnl)).astype(np.uint8)
+            padded_img[padding : padding + img_height, padding : padding + img_width, :] = img[:, :, :]
         else:
             logging.warning("Can't pad image, ndim not standard")
             return None

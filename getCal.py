@@ -5,9 +5,7 @@ _device_file = "/home/canyon/Test_Equipment/crispy-garland/QA_ids.txt"
 
 def download_device(deviceId):
     print("Downloading", deviceId)
-    output = os.system(
-        f"aws s3 cp s3://kcam-calibration-data/{deviceId} ~/S3bucket/{deviceId} --recursive --only-show-errors"
-    )
+    output = os.system(f"aws s3 cp s3://kcam-calibration-data/{deviceId} ~/S3bucket/{deviceId} --recursive --only-show-errors")
     return output == 0
 
 

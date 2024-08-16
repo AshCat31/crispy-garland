@@ -28,11 +28,7 @@ def vector_plot(magnitude, angle_degrees, color="black", zorder=10):
 
 def get_vector(device_id):
     try:
-        mask = np.load(
-            os.path.join(
-                local_directory, device_id, f"mapped_mask_matrix_hydra_{device_id}.npy"
-            )
-        )
+        mask = np.load(os.path.join(local_directory, device_id, f"mapped_mask_matrix_hydra_{device_id}.npy"))
     except FileNotFoundError:
         try:
             s3client.download_file(
@@ -59,11 +55,7 @@ def get_vector(device_id):
                 print("Error:", device_id, "has no mapped mask matrix")
                 return None
     try:
-        mask = np.load(
-            os.path.join(
-                local_directory, device_id, f"mapped_mask_matrix_hydra_{device_id}.npy"
-            )
-        )
+        mask = np.load(os.path.join(local_directory, device_id, f"mapped_mask_matrix_hydra_{device_id}.npy"))
     except FileNotFoundError:
         print("Error:", device_id, "not found")
         return None
@@ -97,9 +89,7 @@ s3c = S3Setup()
 s3client, bucket_name = s3c()
 
 fig, ax = plt.subplots()
-vectors = np.genfromtxt(
-    "Test_vec_integrated.csv", delimiter=",", skip_header=1, dtype="<U25"
-)
+vectors = np.genfromtxt("Test_vec_integrated.csv", delimiter=",", skip_header=1, dtype="<U25")
 bin_ct = 15
 integ_outside = new_outside = 0
 xs = []

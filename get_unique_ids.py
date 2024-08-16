@@ -22,9 +22,7 @@ def main():
     output = get_devices()
     everything = np.asarray([list(line.values()) for line in output])
     unique_ids = []
-    unique_ids = np.unique(
-        np.array([fn.split("/")[0].split(".")[0] for fn in np.transpose(everything)[0]])
-    )
+    unique_ids = np.unique(np.array([fn.split("/")[0].split(".")[0] for fn in np.transpose(everything)[0]]))
     df_out = pd.DataFrame(unique_ids)
     fn_out = "unique_ids.csv"
     df_out.to_csv(fn_out)

@@ -25,21 +25,15 @@ def print_images(devices: list[str], dir_name: str):
         os.mkdir(dir_name)
 
     for device_id in devices:
-        success, correct_points, thermal_image = calibration_utils.get_data_for_device(
-            device_id
-        )
+        success, correct_points, thermal_image = calibration_utils.get_data_for_device(device_id)
         if not success:
             continue
 
-        _, thermal_rgb, thresh_rgb = (
-            auto_point_detection.find_calibration_points_on_heatmap(thermal_image)
-        )
+        _, thermal_rgb, thresh_rgb = auto_point_detection.find_calibration_points_on_heatmap(thermal_image)
 
-        thermal_rgb = np.array(
-            (thermal_rgb - np.min(thermal_rgb))
-            / (np.max(thermal_rgb) - np.min(thermal_rgb))
-            * 255
-        ).astype(np.uint8)
+        thermal_rgb = np.array((thermal_rgb - np.min(thermal_rgb)) / (np.max(thermal_rgb) - np.min(thermal_rgb)) * 255).astype(
+            np.uint8
+        )
 
         base_path = os.path.join(CALIBRATION_DATA_PATH, device_id)
         rgb_img_path = os.path.join(base_path, "6_inch.png")

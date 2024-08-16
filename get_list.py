@@ -45,17 +45,11 @@ def get_devices():
 
 
 def filter_devices(devices):
-    unique_devices = [
-        d
-        for d in devices
-        if d["Key"][-10:] == "6_inch.png" and d["LastModified"].date().year == 2024
-    ]
+    unique_devices = [d for d in devices if d["Key"][-10:] == "6_inch.png" and d["LastModified"].date().year == 2024]
     month_range = ()
 
     while month_range != (0,):
-        month_range = get_date_range(
-            "Enter range of months, ex 1-2 for Jan-Feb, 3 for just March, or 0 to quit"
-        )
+        month_range = get_date_range("Enter range of months, ex 1-2 for Jan-Feb, 3 for just March, or 0 to quit")
         if month_range == (0,):
             break
         elif len(month_range) == 2:
@@ -66,9 +60,7 @@ def filter_devices(devices):
             print("Invalid input")
             continue
 
-        filtered_devices, devices_per_day = filter_by_date(
-            unique_devices, month_range, day_range
-        )
+        filtered_devices, devices_per_day = filter_by_date(unique_devices, month_range, day_range)
         print_result(filtered_devices, devices_per_day)
 
 

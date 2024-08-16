@@ -30,9 +30,7 @@ THERMAL_THRESOLD_C_HUB = -30
 RGB_THRESHOLD_LEVEL = 250
 
 
-def validate_contour(
-    contour, minimal_size: int, maximal_size: int, fulfilment_threshold: float
-):
+def validate_contour(contour, minimal_size: int, maximal_size: int, fulfilment_threshold: float):
     """Check if contour has correct shape and size
 
     Args:
@@ -53,10 +51,7 @@ def validate_contour(
 
     percentage_of_fulfilment = contour_area / circle_area
 
-    return (
-        minimal_size <= contour_area <= maximal_size
-        and percentage_of_fulfilment >= fulfilment_threshold
-    )
+    return minimal_size <= contour_area <= maximal_size and percentage_of_fulfilment >= fulfilment_threshold
 
 
 def find_calibration_points_on_heatmap(image: cv2.Mat, is_hydra=True):
@@ -158,9 +153,7 @@ def find_calibration_points_on_rgb_photo(image):
     kernel = (3, 3)
     image_8u = cv2.GaussianBlur(image_8u, kernel, 0)
 
-    image_8u = cv2.normalize(
-        image_8u, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX
-    )
+    image_8u = cv2.normalize(image_8u, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
 
     image_rgb = cv2.cvtColor(image_8u, cv2.COLOR_GRAY2RGB)
 
@@ -186,9 +179,7 @@ def find_calibration_points_on_rgb_photo(image):
 
     # In case of small reflections on box walls
     if len(correct_contours) > NUMBER_OF_CP_WITH_TRIANGLE:
-        correct_contours.sort(
-            key=lambda contour: cv2.contourArea(contour), reverse=True
-        )
+        correct_contours.sort(key=lambda contour: cv2.contourArea(contour), reverse=True)
         correct_contours = correct_contours[:NUMBER_OF_CP_WITH_TRIANGLE]
 
     coordinates = []
@@ -197,10 +188,7 @@ def find_calibration_points_on_rgb_photo(image):
         (x, y), _ = cv2.minEnclosingCircle(c)
         coordinates.append((int(x), int(y)))
 
-    if (
-        len(coordinates) == NUMBER_OF_CALIBRATION_POINTS
-        or len(coordinates) == NUMBER_OF_CP_WITH_TRIANGLE
-    ):
+    if len(coordinates) == NUMBER_OF_CALIBRATION_POINTS or len(coordinates) == NUMBER_OF_CP_WITH_TRIANGLE:
 
         if len(coordinates) == NUMBER_OF_CALIBRATION_POINTS:
             coordinates = sort_calibration_points(coordinates)

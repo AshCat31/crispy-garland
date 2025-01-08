@@ -18,16 +18,17 @@ def checkPath(file_path):
 
 def get_sn(device_id):
     json_path = f"{device_id}/data.json"
-    js_serial_number = "none"
+    js_serial_number = js_part_number = "none"
     if checkPath(json_path):  # Checking that the data.json exists
         try:
             json_response = s3client.get_object(Bucket=bucket_name, Key=json_path)
             json_file_content = json_response["Body"].read().decode("utf-8")
             data_content = json.loads(json_file_content)
             js_serial_number = data_content["serial_number"]
+            js_part_number = data_content["part_number"]
         except:
             pass
-    return js_serial_number
+    return js_serial_number, js_part_number
 
 
 def get_date(id, filenames, csv_data, fileids):
@@ -54,10 +55,12 @@ def main():
     all_ids = np.genfromtxt("unique_ids.csv", delimiter=",", skip_header=1, usecols=-1, dtype=str)
 
     for idx, id in enumerate(all_ids):
+        if id == "__pycache__":
+            continue
         try:
-            sn = get_sn(id)
+            sn, pn = get_sn(id)
             last_modi = get_date(id, filenames, csv_data, fileids)
-            everything.append([id, sn, last_modi])
+            everything.append([id, sn, pn, last_modi])
         except Exception as e:
             print("error", id, e)
         if idx % 400 == 0:  # log every 400th to show progress
